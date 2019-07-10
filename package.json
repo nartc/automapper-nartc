@@ -12,7 +12,7 @@
   "author": "Chau <ctch5@mail.umsl.edu>",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/nartc/automapper-nartc.git"
   },
   "license": "MIT",
   "engines": {
