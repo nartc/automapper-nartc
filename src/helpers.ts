@@ -1,13 +1,16 @@
 import {
-  ConditionPredicate, DestinationMappingProperty,
+  ConditionPredicate,
+  DestinationMappingProperty,
   DestinationMappingTransformation,
   DestinationMemberConfigurationOptions,
   DestinationTransformationType,
   ForMemberFn,
   ForMemberValueOrFunction,
-  ForSourceMemberFn, MappingProperty,
+  ForSourceMemberFn,
+  MappingProperty,
   MemberCallback,
-  MemberMappingMetadata, SourceMappingProperty,
+  MemberMappingMetadata,
+  SourceMappingProperty,
   SourceMemberConfigurationOptions
 } from './types'
 
@@ -19,11 +22,15 @@ export const handleCurrying = (fn: Function, args: IArguments, closure: any): an
   // refactor).
   let argumentsCopy = Array.prototype.slice.apply(args)
 
-  function accumulator(moreArgs: IArguments, alreadyProvidedArgs: Array<any>, stillToCome: number): Function {
+  function accumulator(
+    moreArgs: IArguments,
+    alreadyProvidedArgs: Array<any>,
+    stillToCome: number
+  ): Function {
     let previousAlreadyProvidedArgs = alreadyProvidedArgs.slice(0) // to reset
     let previousStillToCome = stillToCome // to reset
 
-    for (let i = 0; i < moreArgs.length; i++ , stillToCome--) {
+    for (let i = 0; i < moreArgs.length; i++, stillToCome--) {
       alreadyProvidedArgs[alreadyProvidedArgs.length] = moreArgs[i]
     }
 
@@ -68,11 +75,18 @@ export const getMappingMetadata = <TSource, TDestination>(
 
   const params = getFunctionParameters(sourceFnString)
   const optsParam = params.length >= 1 ? params[0] : ''
-  const source = sourceMapping ? sourceFnKey : getMapFromString(sourceFnString, sourceFnKey, optsParam)
+  const source = sourceMapping
+    ? sourceFnKey
+    : getMapFromString(sourceFnString, sourceFnKey, optsParam)
   const metadata: MemberMappingMetadata<TSource, TDestination> = {
     destination: sourceFnKey as keyof TDestination,
     source: source as keyof TSource,
-    transformation: getDestinationTransformation(transformation, true, sourceMapping, params.length === 2),
+    transformation: getDestinationTransformation(
+      transformation,
+      true,
+      sourceMapping,
+      params.length === 2
+    ),
     sourceMapping,
     condition: undefined,
     ignore: getIgnoreFromString(sourceFnString, sourceFnKey),
@@ -80,8 +94,10 @@ export const getMappingMetadata = <TSource, TDestination>(
   }
 
   if (!metadata.async && getFunctionCallIndex(sourceFnString, 'condition', optsParam) >= 0) {
-    metadata.condition = getConditionFromFunction(transformation as ForMemberValueOrFunction<TSource, TDestination>,
-      source as keyof TSource)
+    metadata.condition = getConditionFromFunction(
+      transformation as ForMemberValueOrFunction<TSource, TDestination>,
+      source as keyof TSource
+    )
   }
 
   return metadata
@@ -110,7 +126,9 @@ export const getDestinationTransformation = <TSource, TDestination>(
 
     return {
       transformationType: DestinationTransformationType.SourceMemberOptions,
-      sourceMemberConfigurationOptionsFn: transformation as ((opts: SourceMemberConfigurationOptions<TSource>) => any)
+      sourceMemberConfigurationOptionsFn: transformation as ((
+        opts: SourceMemberConfigurationOptions<TSource>
+      ) => any)
     }
   }
 
@@ -126,17 +144,20 @@ export const getDestinationTransformation = <TSource, TDestination>(
 
   return {
     transformationType: DestinationTransformationType.MemberOptions,
-    memberConfigurationOptionsFn: transformation as ((opts: DestinationMemberConfigurationOptions<TSource, TDestination>) => any)
+    memberConfigurationOptionsFn: transformation as ((
+      opts: DestinationMemberConfigurationOptions<TSource, TDestination>
+    ) => any)
   }
 }
 
 export const getFunctionParameters = (fnString: string): string[] => {
-  const stripComments = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg
+  const stripComments = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm
   const argumentNames = /([^\s,]+)/g
 
   let functionString = fnString.replace(stripComments, '')
 
-  let functionParameterNames = functionString.slice(functionString.indexOf('(') + 1, functionString.indexOf(')'))
+  let functionParameterNames = functionString
+    .slice(functionString.indexOf('(') + 1, functionString.indexOf(')'))
     .match(argumentNames)
   if (functionParameterNames === null) {
     functionParameterNames = new Array<string>()
@@ -144,7 +165,11 @@ export const getFunctionParameters = (fnString: string): string[] => {
   return functionParameterNames
 }
 
-export const getMapFromString = (fnString: string, defaultValue: string, optionsParamName: string): string => {
+export const getMapFromString = (
+  fnString: string,
+  defaultValue: string,
+  optionsParamName: string
+): string => {
   let indexOfMapFrom = getFunctionCallIndex(fnString, 'mapFrom', optionsParamName)
   if (indexOfMapFrom < 0) {
     return defaultValue
@@ -157,14 +182,20 @@ export const getMapFromString = (fnString: string, defaultValue: string, options
     return defaultValue
   }
 
-  let mapFromString = fnString.substring(indexOfMapFromStart, indexOfMapFromEnd).replace(/'/g, '').replace(/"/g, '')
+  let mapFromString = fnString
+    .substring(indexOfMapFromStart, indexOfMapFromEnd)
+    .replace(/'/g, '')
+    .replace(/"/g, '')
     .trim()
-  return mapFromString === null || mapFromString === ''
-         ? defaultValue
-         : mapFromString
+  // @ts-ignore
+  return mapFromString === null || mapFromString === '' ? defaultValue : mapFromString
 }
 
-export const getFunctionCallIndex = (fnString: string, fnToLookFor: string, optionsParamName: string): number => {
+export const getFunctionCallIndex = (
+  fnString: string,
+  fnToLookFor: string,
+  optionsParamName: string
+): number => {
   let indexOfFunctionCall = fnString.indexOf(optionsParamName + '.' + fnToLookFor)
   if (indexOfFunctionCall < 0) {
     indexOfFunctionCall = fnString.indexOf('.' + fnToLookFor)
@@ -191,6 +222,7 @@ export const getIgnoreFromString = (fnString: string, optionsParameterName: stri
     .replace(/\r/g, '')
     .replace(/\n/g, '')
     .trim()
+  // @ts-ignore
   return ignoreString === null || ignoreString === ''
 }
 
@@ -225,7 +257,9 @@ export const getConditionFromFunction = <TSource, TDestination>(
   }
 
   try {
-    (transformation as ((opts: DestinationMemberConfigurationOptions<TSource, TDestination>) => any))(configFuncOptions)
+    ;(transformation as ((
+      opts: DestinationMemberConfigurationOptions<TSource, TDestination>
+    ) => any))(configFuncOptions)
   } catch (exc) {
     // do not handle by default.
   }
@@ -289,10 +323,10 @@ export const handleMapFromProperties = <TSource, TDestination>(
   property: MappingProperty<TSource, TDestination>,
   existing: MappingProperty<TSource, TDestination>
 ) => {
-  if ((property.destinationPropertyName as string) ===
-    (property.sourcePropertyName as string) ||
-    property.sourcePropertyName ===
-    existing.sourcePropertyName) {
+  if (
+    (property.destinationPropertyName as string) === (property.sourcePropertyName as string) ||
+    property.sourcePropertyName === existing.sourcePropertyName
+  ) {
     return false
   }
 

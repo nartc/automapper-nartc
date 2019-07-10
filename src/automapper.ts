@@ -15,7 +15,9 @@ import {
   Constructable,
   CreateMapFluentFunctions,
   DestinationMappingProperty,
-  DestinationMappingTransformation, DestinationMemberConfigurationOptions, DestinationTransformationType,
+  DestinationMappingTransformation,
+  DestinationMemberConfigurationOptions,
+  DestinationTransformationType,
   ForAllMembersFn,
   ForMemberFn,
   ForMemberValueOrFunction,
@@ -31,10 +33,10 @@ class AutoMapper extends AutoMapperBase {
   private static _instance: AutoMapper = new AutoMapper()
 
   private readonly _mappings!: {
-    [name: string]: any;
+    [name: string]: any
   }
   private readonly _profiles!: {
-    [profile: string]: MappingProfile;
+    [profile: string]: MappingProfile
   }
 
   public static getInstance(): AutoMapper {
@@ -58,7 +60,10 @@ class AutoMapper extends AutoMapperBase {
         profile.configure()
         this._profiles[profile.profileName] = profile
       },
-      createMap: <TSource, TDestination>(source: Constructable<TSource>, destination: Constructable<TDestination>) => {
+      createMap: <TSource, TDestination>(
+        source: Constructable<TSource>,
+        destination: Constructable<TDestination>
+      ) => {
         return this.createMap<TSource, TDestination>(source, destination)
       }
     }
@@ -84,19 +89,23 @@ class AutoMapper extends AutoMapperBase {
     sourceObj: TSource
   ): any {
     if (arguments.length === 3) {
-      return this.mapInternal(super.getMapping(this._mappings, source, destination), sourceObj) as TDestination
+      return this.mapInternal(
+        super.getMapping(this._mappings, source, destination),
+        sourceObj
+      ) as TDestination
     }
 
     if (arguments.length === 2) {
-      return (sourceObj: TSource): TDestination => this.mapInternal(super.getMapping(this._mappings,
-        source,
-        destination), sourceObj) as TDestination
+      return (sourceObj: TSource): TDestination =>
+        this.mapInternal(
+          super.getMapping(this._mappings, source, destination),
+          sourceObj
+        ) as TDestination
     }
 
     if (arguments.length === 1) {
-      return (dest: Constructable<TDestination>, sourceObj: TSource): TDestination => this.map(source,
-        destination,
-        sourceObj) as TDestination
+      return (dest: Constructable<TDestination>, sourceObj: TSource): TDestination =>
+        this.map(source, destination, sourceObj) as TDestination
     }
 
     return (
@@ -110,13 +119,15 @@ class AutoMapper extends AutoMapperBase {
     mapping: Mapping<TSource, TDestination>,
     sourceObj: TSource | TSource[] | null
   ): TDestination | TDestination[] | null {
+    // @ts-ignore
     if (sourceObj === null || typeof sourceObj === 'undefined') {
       return null
     }
 
     if (mapping.async) {
       throw new Error(
-        'Impossible to use asynchronous mapping using automapper.map(); use automapper.mapAsync() instead.')
+        'Impossible to use asynchronous mapping using automapper.map(); use automapper.mapAsync() instead.'
+      )
     }
 
     if (super.isArray(sourceObj)) {
@@ -131,9 +142,11 @@ class AutoMapper extends AutoMapperBase {
       })
     }
 
-    const mapped = mapping.mapItemFn(mapping,
+    const mapped = mapping.mapItemFn(
+      mapping,
       sourceObj as TSource,
-      super.createDestinationObject(mapping.destinationTypeClass))
+      super.createDestinationObject(mapping.destinationTypeClass)
+    )
     const result = new mapping.destinationTypeClass()
     for (const key in mapped) {
       result[key] = mapped[key]
@@ -168,13 +181,15 @@ class AutoMapper extends AutoMapperBase {
     destinationObject: TDestination,
     propName: string
   ): void {
-    super.handleProperty(mapping,
+    super.handleProperty(
+      mapping,
       sourceObject,
       propName as keyof TSource,
       destinationObject,
       (destinationProperty, memberOptions) => {
         this.transform(mapping, sourceObject, destinationProperty, destinationObject, memberOptions)
-      })
+      }
+    )
   }
 
   private transform<TSource, TDestination>(
@@ -186,14 +201,24 @@ class AutoMapper extends AutoMapperBase {
   ): boolean {
     const childDestinationProperty = destinationProperty.child
     if (childDestinationProperty) {
-      let childDestinationObj = (destinationObj as TDestination)[destinationProperty.name as keyof TDestination]
+      let childDestinationObj = (destinationObj as TDestination)[
+        destinationProperty.name as keyof TDestination
+      ]
       if (!childDestinationObj) {
         childDestinationObj = {} as any
       }
 
-      const transformed = this.transform(mapping, sourceObj, childDestinationProperty, childDestinationObj, options)
+      const transformed = this.transform(
+        mapping,
+        sourceObj,
+        childDestinationProperty,
+        childDestinationObj,
+        options
+      )
       if (transformed) {
-        (destinationObj as TDestination)[destinationProperty.name as keyof TDestination] = childDestinationObj
+        ;(destinationObj as TDestination)[
+          destinationProperty.name as keyof TDestination
+        ] = childDestinationObj
       }
 
       return transformed
@@ -209,10 +234,12 @@ class AutoMapper extends AutoMapperBase {
       }
     }
 
-    super.setPropertyValue(mapping,
+    super.setPropertyValue(
+      mapping,
       destinationProperty,
       destinationObj as TDestination,
-      options.intermediatePropertyValue)
+      options.intermediatePropertyValue
+    )
     return true
   }
 
@@ -226,8 +253,10 @@ class AutoMapper extends AutoMapperBase {
         options.intermediatePropertyValue = transformation.constant
         return true
       case DestinationTransformationType.MemberOptions: {
-        const result = transformation.memberConfigurationOptionsFn &&
+        const result =
+          transformation.memberConfigurationOptionsFn &&
           transformation.memberConfigurationOptionsFn(options)
+        // @ts-ignore
         if (typeof result !== 'undefined') {
           options.intermediatePropertyValue = result
         } else if (!options.sourceObject) {
@@ -237,8 +266,10 @@ class AutoMapper extends AutoMapperBase {
         return true
       }
       case DestinationTransformationType.SourceMemberOptions: {
-        const result = transformation.sourceMemberConfigurationOptionsFn &&
+        const result =
+          transformation.sourceMemberConfigurationOptionsFn &&
           transformation.sourceMemberConfigurationOptionsFn(options)
+        // @ts-ignore
         if (typeof result !== 'undefined') {
           options.intermediatePropertyValue = result
         } else if (!options.sourceObject) {
@@ -273,7 +304,9 @@ class AutoMapper extends AutoMapperBase {
     return mapping
   }
 
-  private createMapGetFluentApiFunctions<TSource, TDestination>(mapping: Mapping<TSource, TDestination>): CreateMapFluentFunctions<TSource, TDestination> {
+  private createMapGetFluentApiFunctions<TSource, TDestination>(
+    mapping: Mapping<TSource, TDestination>
+  ): CreateMapFluentFunctions<TSource, TDestination> {
     const fluentFunctions: CreateMapFluentFunctions<TSource, TDestination> = {
       forMember: (forMemberFn, valueOrFunction) => {
         return this.createMapForMember<TSource, TDestination>({
@@ -309,10 +342,10 @@ class AutoMapper extends AutoMapperBase {
   }
 
   private createMapForMember<TSource, TDestination>(param: {
-    mapping: Mapping<TSource, TDestination>;
-    sourceFn: ForMemberFn<TDestination> | ForMemberFn<TSource>;
-    transformation: ForMemberValueOrFunction<TSource, TDestination> | ForSourceMemberFn<TSource>;
-    sourceMapping: boolean;
+    mapping: Mapping<TSource, TDestination>
+    sourceFn: ForMemberFn<TDestination> | ForMemberFn<TSource>
+    transformation: ForMemberValueOrFunction<TSource, TDestination> | ForSourceMemberFn<TSource>
+    sourceMapping: boolean
     fluentFunctions: CreateMapFluentFunctions<TSource, TDestination>
   }) {
     const { mapping, sourceFn, transformation, sourceMapping, fluentFunctions } = param
@@ -365,8 +398,9 @@ class AutoMapper extends AutoMapperBase {
     profile: MappingProfile
   ): void {
     const _profile = this._profiles[profile.profileName]
+    // @ts-ignore
     if (typeof _profile === 'undefined' || _profile.profileName !== profile.profileName) {
-      throw new Error(`Could not find profile with name: ${ profile.profileName }`)
+      throw new Error(`Could not find profile with name: ${profile.profileName}`)
     }
 
     mapping.profile = _profile
@@ -377,7 +411,7 @@ class AutoMapper extends AutoMapperBase {
     mapping: Mapping<TSource, TDestination>,
     profile: MappingProfile
   ): void {
-    const profileMappingKey = `${ profile.profileName }=>${ mapping.sourceKey }=>${ mapping.destinationKey }`
+    const profileMappingKey = `${profile.profileName}=>${mapping.sourceKey}=>${mapping.destinationKey}`
     const profileMapping = this._mappings[profileMappingKey] as Mapping<TSource, TDestination>
 
     if (!profileMapping) {
@@ -398,8 +432,10 @@ class AutoMapper extends AutoMapperBase {
     }
 
     for (const prop of profileMapping.properties) {
-      const sourceMapping = (getDestinationProperty(prop.destinationPropertyName,
-        prop) as DestinationMappingProperty<TSource, TDestination>).sourceMapping
+      const sourceMapping = (getDestinationProperty(
+        prop.destinationPropertyName,
+        prop
+      ) as DestinationMappingProperty<TSource, TDestination>).sourceMapping
       if (!this.mergeSourceProperty(prop, mapping.properties, sourceMapping)) {
         mapping.properties.push(prop)
       }
@@ -421,7 +457,7 @@ class AutoMapper extends AutoMapperBase {
       destination: undefined
     }
 
-    if ((level + 1) < sourceNameParts.length) {
+    if (level + 1 < sourceNameParts.length) {
       const child = this.createSourceProperty(metadata, source)
       if (child) {
         source.children.push(child)
@@ -452,7 +488,7 @@ class AutoMapper extends AutoMapperBase {
       sourceMapping: false
     }
 
-    if ((level + 1) < destinationNameParts.length) {
+    if (level + 1 < destinationNameParts.length) {
       destination.child = this.createDestinationProperty(metadata, destination)
     } else {
       destination.sourceMapping = metadata.sourceMapping
@@ -470,8 +506,8 @@ class AutoMapper extends AutoMapperBase {
     sourceMapping: boolean
   ): boolean {
     const existing = sourceMapping
-                     ? findProperty(property.name, existingProperties)
-                     : matchSourcePropertyByDestination(property, existingProperties)
+      ? findProperty(property.name, existingProperties)
+      : matchSourcePropertyByDestination(property, existingProperties)
 
     if (!existing) {
       return false
@@ -479,27 +515,40 @@ class AutoMapper extends AutoMapperBase {
 
     if (property.destination) {
       if ((existing as SourceMappingProperty<TSource, TDestination>).children.length > 0) {
-        const existingDestination = getDestinationProperty(existing.destinationPropertyName,
-          existing as SourceMappingProperty<TSource, TDestination>)
+        const existingDestination = getDestinationProperty(
+          existing.destinationPropertyName,
+          existing as SourceMappingProperty<TSource, TDestination>
+        )
 
-        if (handleMapFromProperties(property as MappingProperty<TSource, TDestination>,
-          existing as MappingProperty<TSource, TDestination>)) {
-          if (!this.mergeDestinationProperty(property.destination,
-            existingDestination as DestinationMappingProperty<TSource, TDestination>)) {
+        if (handleMapFromProperties(property as MappingProperty<TSource, TDestination>, existing)) {
+          if (
+            !this.mergeDestinationProperty(
+              property.destination,
+              existingDestination as DestinationMappingProperty<TSource, TDestination>
+            )
+          ) {
             return false
           }
-          (existing as SourceMappingProperty<TSource, TDestination>).destination
-            = existingDestination as DestinationMappingProperty<TSource, TDestination>;
-          (existing as SourceMappingProperty<TSource, TDestination>).children = []
+          ;(existing as SourceMappingProperty<
+            TSource,
+            TDestination
+          >).destination = existingDestination as DestinationMappingProperty<TSource, TDestination>
+          ;(existing as SourceMappingProperty<TSource, TDestination>).children = []
           return true
         }
 
-        return this.mergeDestinationProperty(property.destination,
-          existingDestination as DestinationMappingProperty<TSource, TDestination>)
+        return this.mergeDestinationProperty(
+          property.destination,
+          existingDestination as DestinationMappingProperty<TSource, TDestination>
+        )
       }
 
-      if (!this.mergeDestinationProperty(property.destination,
-        (existing as SourceMappingProperty<TSource, TDestination>).destination as DestinationMappingProperty<TSource, TDestination>)) {
+      if (
+        !this.mergeDestinationProperty(property.destination, (existing as SourceMappingProperty<
+          TSource,
+          TDestination
+        >).destination as DestinationMappingProperty<TSource, TDestination>)
+      ) {
         return false
       }
 
@@ -509,37 +558,55 @@ class AutoMapper extends AutoMapperBase {
 
     if ((existing as SourceMappingProperty<TSource, TDestination>).children.length > 0) {
       for (const child of property.children) {
-        if (!this.mergeSourceProperty(child as SourceMappingProperty<TSource, TDestination>,
-          (existing as SourceMappingProperty<TSource, TDestination>).children,
-          sourceMapping)) {
+        if (
+          !this.mergeSourceProperty(
+            child,
+            (existing as SourceMappingProperty<TSource, TDestination>).children,
+            sourceMapping
+          )
+        ) {
           return false
         }
       }
 
-      if ((property.destinationPropertyName as string) !== (property.sourcePropertyName as string)) {
+      if (
+        (property.destinationPropertyName as string) !== (property.sourcePropertyName as string)
+      ) {
         existing.name = property.name
         existing.sourcePropertyName = property.sourcePropertyName
       }
       return true
     }
 
-    const newDestination: DestinationMappingProperty<TSource, TDestination> = getDestinationProperty(existing.destinationPropertyName,
-      property) as DestinationMappingProperty<TSource, TDestination>
+    const newDestination: DestinationMappingProperty<
+      TSource,
+      TDestination
+    > = getDestinationProperty(
+      existing.destinationPropertyName,
+      property
+    ) as DestinationMappingProperty<TSource, TDestination>
     if ((property.destinationPropertyName as string) !== (property.sourcePropertyName as string)) {
-      if (!this.mergeDestinationProperty((existing as SourceMappingProperty<TSource, TDestination>).destination as DestinationMappingProperty<TSource, TDestination>,
-        newDestination,
-        true)) {
+      if (
+        !this.mergeDestinationProperty(
+          (existing as SourceMappingProperty<TSource, TDestination>)
+            .destination as DestinationMappingProperty<TSource, TDestination>,
+          newDestination,
+          true
+        )
+      ) {
         return false
       }
 
-      (existing as SourceMappingProperty<TSource, TDestination>).children = property.children;
-      (existing as SourceMappingProperty<TSource, TDestination>).destination = undefined
+      ;(existing as SourceMappingProperty<TSource, TDestination>).children = property.children
+      ;(existing as SourceMappingProperty<TSource, TDestination>).destination = undefined
       existing.name = property.name
       existing.sourcePropertyName = property.sourcePropertyName
       return true
     }
-    return this.mergeDestinationProperty(newDestination,
-      (existing as SourceMappingProperty<TSource, TDestination>).destination as DestinationMappingProperty<TSource, TDestination>)
+    return this.mergeDestinationProperty(newDestination, (existing as SourceMappingProperty<
+      TSource,
+      TDestination
+    >).destination as DestinationMappingProperty<TSource, TDestination>)
   }
 
   private mergeDestinationProperty<TSource, TDestination>(
@@ -549,7 +616,13 @@ class AutoMapper extends AutoMapperBase {
   ): boolean {
     if (destination.child) {
       if (existingDestination.child) {
-        if (!this.mergeDestinationProperty(destination.child, existingDestination.child, swapTransformations)) {
+        if (
+          !this.mergeDestinationProperty(
+            destination.child,
+            existingDestination.child,
+            swapTransformations
+          )
+        ) {
           return false
         }
 
@@ -560,10 +633,10 @@ class AutoMapper extends AutoMapperBase {
       return false
     }
 
-    if (existingDestination.sourceMapping !==
-      destination.sourceMapping &&
-      existingDestination.sourcePropertyName !==
-      destination.sourcePropertyName) {
+    if (
+      existingDestination.sourceMapping !== destination.sourceMapping &&
+      existingDestination.sourcePropertyName !== destination.sourcePropertyName
+    ) {
       return false
     }
 
