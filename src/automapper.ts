@@ -119,7 +119,6 @@ class AutoMapper extends AutoMapperBase {
     mapping: Mapping<TSource, TDestination>,
     sourceObj: TSource | TSource[] | null
   ): TDestination | TDestination[] | null {
-    // @ts-ignore
     if (sourceObj === null || typeof sourceObj === 'undefined') {
       return null
     }
@@ -256,7 +255,6 @@ class AutoMapper extends AutoMapperBase {
         const result =
           transformation.memberConfigurationOptionsFn &&
           transformation.memberConfigurationOptionsFn(options)
-        // @ts-ignore
         if (typeof result !== 'undefined') {
           options.intermediatePropertyValue = result
         } else if (!options.sourceObject) {
@@ -269,7 +267,6 @@ class AutoMapper extends AutoMapperBase {
         const result =
           transformation.sourceMemberConfigurationOptionsFn &&
           transformation.sourceMemberConfigurationOptionsFn(options)
-        // @ts-ignore
         if (typeof result !== 'undefined') {
           options.intermediatePropertyValue = result
         } else if (!options.sourceObject) {
@@ -398,7 +395,6 @@ class AutoMapper extends AutoMapperBase {
     profile: MappingProfile
   ): void {
     const _profile = this._profiles[profile.profileName]
-    // @ts-ignore
     if (typeof _profile === 'undefined' || _profile.profileName !== profile.profileName) {
       throw new Error(`Could not find profile with name: ${profile.profileName}`)
     }

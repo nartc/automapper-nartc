@@ -187,7 +187,6 @@ export const getMapFromString = (
     .replace(/'/g, '')
     .replace(/"/g, '')
     .trim()
-  // @ts-ignore
   return mapFromString === null || mapFromString === '' ? defaultValue : mapFromString
 }
 
@@ -222,7 +221,6 @@ export const getIgnoreFromString = (fnString: string, optionsParameterName: stri
     .replace(/\r/g, '')
     .replace(/\n/g, '')
     .trim()
-  // @ts-ignore
   return ignoreString === null || ignoreString === ''
 }
 
