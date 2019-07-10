@@ -671,4 +671,4 @@ class AutoMapper extends AutoMapperBase {
   }
 }
 
-export default new AutoMapper()
+export const Mapper = new AutoMapper()

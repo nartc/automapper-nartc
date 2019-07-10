@@ -3,7 +3,4 @@ export * from './naming/pascal-case-naming-convention'
 export * from './base'
 export * from './profile'
 export * from './types'
-
-import automapper from './automapper'
-
-export default automapper
+export * from './automapper'
