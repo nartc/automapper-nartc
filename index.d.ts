@@ -77,10 +77,11 @@ declare module 'automapper-nartc/helpers' {
 declare module 'automapper-nartc/index' {
   export * from 'automapper-nartc/naming/camel-case-naming-convention';
   export * from 'automapper-nartc/naming/pascal-case-naming-convention';
-  export * from 'automapper-nartc/automapper';
   export * from 'automapper-nartc/base';
   export * from 'automapper-nartc/profile';
   export * from 'automapper-nartc/types';
+  import automapper from 'automapper-nartc/automapper';
+  export default automapper;
 
 }
 declare module 'automapper-nartc/naming/camel-case-naming-convention' {
