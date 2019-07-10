@@ -1,7 +1,7 @@
 declare module 'automapper-nartc/automapper' {
   import { AutoMapperBase } from 'automapper-nartc/base';
   import { Configuration, Constructable, CreateMapFluentFunctions } from 'automapper-nartc/types';
-  class AutoMapper extends AutoMapperBase {
+  export class AutoMapper extends AutoMapperBase {
       private static _instance;
       private readonly _mappings;
       private readonly _profiles;
@@ -29,8 +29,7 @@ declare module 'automapper-nartc/automapper' {
       private mergeSourceProperty;
       private mergeDestinationProperty;
   }
-  const _default: AutoMapper;
-  export default _default;
+  export const Mapper: AutoMapper;
 
 }
 declare module 'automapper-nartc/base' {
@@ -80,8 +79,7 @@ declare module 'automapper-nartc/index' {
   export * from 'automapper-nartc/base';
   export * from 'automapper-nartc/profile';
   export * from 'automapper-nartc/types';
-  import automapper from 'automapper-nartc/automapper';
-  export default automapper;
+  export * from 'automapper-nartc/automapper';
 
 }
 declare module 'automapper-nartc/naming/camel-case-naming-convention' {
