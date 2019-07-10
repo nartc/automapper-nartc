@@ -9,6 +9,7 @@
   "files": [
     "dist"
   ],
+  "types": "index.d.ts",
   "author": "Chau <ctch5@mail.umsl.edu>",
   "repository": {
     "type": "git",
@@ -34,7 +35,8 @@
     "precommit": "lint-staged",
     "travis-deploy-once": "travis-deploy-once",
     "prepush": "npm run test:prod && npm run build",
-    "commitmsg": "commitlint -E HUSKY_GIT_PARAMS"
+    "commitmsg": "commitlint -E HUSKY_GIT_PARAMS",
+    "gen:dts": "npm-dts generate"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [
@@ -90,6 +92,7 @@
     "jest-config": "^23.6.0",
     "lint-staged": "^8.0.0",
     "lodash.camelcase": "^4.3.0",
+    "npm-dts": "^1.1.9",
     "prettier": "^1.14.3",
     "prompt": "^1.0.0",
     "replace-in-file": "^3.4.2",
