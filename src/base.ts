@@ -3,7 +3,10 @@ import {
   CreateMapFluentFunctions,
   DestinationMappingProperty,
   DestinationMemberConfigurationOptions,
-  Mapping, MappingProfile, MemberCallback, SourceMappingProperty
+  Mapping,
+  MappingProfile,
+  MemberCallback,
+  SourceMappingProperty
 } from './types'
 
 export abstract class AutoMapperBase {
@@ -11,12 +14,12 @@ export abstract class AutoMapperBase {
     source: Constructable<TSource>,
     destination: Constructable<TDestination>,
     sourceObj: TSource
-  ): TDestination;
+  ): TDestination
 
   public abstract createMap<TSource, TDestination>(
     source: Constructable<TSource>,
     destination: Constructable<TDestination>
-  ): CreateMapFluentFunctions<TSource, TDestination>;
+  ): CreateMapFluentFunctions<TSource, TDestination>
 
   protected getMapping<TSource, TDestination>(
     mappings: { [key: string]: Mapping<TSource, TDestination> },
@@ -25,16 +28,18 @@ export abstract class AutoMapperBase {
   ): Mapping<TSource, TDestination> {
     const sourceKey = source.name
     const destinationKey = destination.name
-    const mapping: Mapping<TSource, TDestination> = mappings[sourceKey + destinationKey]
+    const mapping: Mapping<TSource, TDestination> = mappings[sourceKey + '_' + destinationKey]
     if (!mapping) {
-      throw new Error(`Could not find map object with a source of ${ sourceKey } and a destination of ${ destinationKey }`)
+      throw new Error(
+        `Could not find map object with a source of ${sourceKey} and a destination of ${destinationKey}`
+      )
     }
 
     return mapping
   }
 
   protected isArray<TSource>(sourceObject: TSource): boolean {
-    return typeof (sourceObject) === 'object' && sourceObject instanceof Array
+    return typeof sourceObject === 'object' && sourceObject instanceof Array
   }
 
   protected handleArray<TSource, TDestination>(
@@ -106,12 +111,20 @@ export abstract class AutoMapperBase {
         this.processMappedProperty(mapping, propMapping, sourceObj, sourcePropName, transformFn)
       }
     } else {
-      this.handlePropertyWithAutoMapping(mapping, sourceObj, sourcePropName, destinationObj, autoMappingCbFn)
+      this.handlePropertyWithAutoMapping(
+        mapping,
+        sourceObj,
+        sourcePropName,
+        destinationObj,
+        autoMappingCbFn
+      )
     }
   }
 
-  protected createDestinationObject<TDestination>(destination: Constructable<TDestination>): TDestination {
-    return destination ? new destination() : {} as TDestination
+  protected createDestinationObject<TDestination>(
+    destination: Constructable<TDestination>
+  ): TDestination {
+    return destination ? new destination() : ({} as TDestination)
   }
 
   protected setPropertyValue<TSource, TDestination>(
@@ -122,7 +135,11 @@ export abstract class AutoMapperBase {
   ): void {
     if (mapping.forAllMembersMappings.length) {
       for (const forAllMembersMapping of mapping.forAllMembersMappings) {
-        forAllMembersMapping(destinationObj, destinationProperty.name as keyof TDestination, destinationPropVal)
+        forAllMembersMapping(
+          destinationObj,
+          destinationProperty.name as keyof TDestination,
+          destinationPropVal
+        )
       }
     } else {
       destinationObj[destinationProperty.name as keyof TDestination] = destinationPropVal
@@ -172,35 +189,52 @@ export abstract class AutoMapperBase {
       return
     }
 
-    if (mapping.destinationTypeClass && Object.keys(destinationObj).indexOf(sourcePropName as string) < 0) {
+    if (
+      mapping.destinationTypeClass &&
+      Object.keys(destinationObj).indexOf(sourcePropName as string) < 0
+    ) {
       return
     }
 
     let objectVal: TDestination = null as any
     let isNestedObj = false
 
-    if (typeof (destinationObj as any)[sourcePropName] ===
-      'object' &&
-      (destinationObj as any)[sourcePropName]) {
-      isNestedObj = ((destinationObj as any)[sourcePropName].constructor.name !== 'object')
+    if (
+      typeof (destinationObj as any)[sourcePropName] === 'object' &&
+      (destinationObj as any)[sourcePropName]
+    ) {
+      isNestedObj = (destinationObj as any)[sourcePropName].constructor.name !== 'object'
 
       if (isNestedObj) {
-        this.createMap((sourceObj as any)[sourcePropName].constructor,
-          (destinationObj as any)[sourcePropName].constructor)
-          .convertToType((destinationObj as any)[sourcePropName].constructor)
+        this.createMap(
+          (sourceObj as any)[sourcePropName].constructor,
+          (destinationObj as any)[sourcePropName].constructor
+        ).convertToType((destinationObj as any)[sourcePropName].constructor)
 
-        objectVal = this.map((sourceObj as any)[sourcePropName].constructor,
+        objectVal = this.map(
+          (sourceObj as any)[sourcePropName].constructor,
           (destinationObj as any)[sourcePropName].constructor,
-          sourceObj[sourcePropName])
+          sourceObj[sourcePropName]
+        )
       }
     }
 
-    const destinationPropName = this.getDestinationPropertyName(mapping.profile as MappingProfile, sourcePropName)
-    const destinationPropVal = this.getDestinationPropertyValue(sourceObj, sourcePropName, objectVal, isNestedObj)
-    this.setPropertyValueByName(mapping,
+    const destinationPropName = this.getDestinationPropertyName(
+      mapping.profile as MappingProfile,
+      sourcePropName
+    )
+    const destinationPropVal = this.getDestinationPropertyValue(
+      sourceObj,
+      sourcePropName,
+      objectVal,
+      isNestedObj
+    )
+    this.setPropertyValueByName(
+      mapping,
       destinationObj,
       destinationPropName as keyof TDestination,
-      destinationPropVal as TDestination[keyof TDestination])
+      destinationPropVal as TDestination[keyof TDestination]
+    )
     if (autoMappingCbFn) {
       autoMappingCbFn(destinationPropVal as TDestination[keyof TDestination])
     }
@@ -215,7 +249,9 @@ export abstract class AutoMapperBase {
     }
 
     try {
-      const sourcePropNameParts = (sourcePropName as string).split(profile.sourceMemberNamingConvention.splittingExpression)
+      const sourcePropNameParts = (sourcePropName as string).split(
+        profile.sourceMemberNamingConvention.splittingExpression
+      )
       for (let i = sourcePropNameParts.length - 1; i >= 0; i--) {
         if (sourcePropNameParts[i] === '') {
           sourcePropNameParts.splice(i, 1)
@@ -275,8 +311,10 @@ export abstract class AutoMapperBase {
     }
 
     const destination = propertyMapping.destination
-    const configOptions = this.createMemberConfigurationOptions<TSource, TDestination>(sourceObj as TSource,
-      sourcePropName as keyof TSource)
+    const configOptions = this.createMemberConfigurationOptions<TSource, TDestination>(
+      sourceObj as TSource,
+      sourcePropName as keyof TSource
+    )
     transformFn(destination as DestinationMappingProperty<TSource, TDestination>, configOptions)
   }
 
