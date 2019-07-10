@@ -29,7 +29,7 @@ import {
   SourceMappingProperty
 } from './types'
 
-class AutoMapper extends AutoMapperBase {
+export class AutoMapper extends AutoMapperBase {
   private static _instance: AutoMapper = new AutoMapper()
 
   private readonly _mappings!: {

@@ -1,4 +1,4 @@
-import AutoMapper from '../src/automapper'
+import { AutoMapper, Mapper } from '../src/automapper'
 
 /**
  * Dummy test
@@ -9,6 +9,6 @@ describe('Dummy test', () => {
   })
 
   it('AutoMapper is instantiable', () => {
-    expect(AutoMapper).toBeTruthy()
+    expect(Mapper).toBeInstanceOf(AutoMapper)
   })
 })
