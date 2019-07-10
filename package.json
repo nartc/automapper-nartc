@@ -5,11 +5,11 @@
   "keywords": [],
   "main": "dist/automapper.umd.js",
   "module": "dist/automapper.es5.js",
-  "typings": "dist/types/automapper.d.ts",
+  "typings": "index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "index.d.ts"
   ],
-  "types": "index.d.ts",
   "author": "Chau <ctch5@mail.umsl.edu>",
   "repository": {
     "type": "git",
