@@ -9,7 +9,7 @@ export type Constructable<T extends {} = any> = new (...args: any[]) => T
 export type MapFromCallback<
   TSource extends {} = any,
   TDestination extends {} = any,
-  K extends keyof TDestination = TDestination[any]
+  K extends keyof TDestination = never
 > = (source: TSource) => TDestination[K]
 export type ConditionPredicate<TSource extends {}> = (source: TSource) => boolean
 
@@ -23,7 +23,7 @@ export interface SourceMemberConfigOptions<
 export interface DestinationMemberConfigOptions<
   TSource extends {} = any,
   TDestination extends {} = any,
-  K extends keyof TDestination = TDestination[any]
+  K extends keyof TDestination = never
 > extends SourceMemberConfigOptions<TSource, TDestination> {
   mapFrom(cb: MapFromCallback<TSource, TDestination, K>): void
 
@@ -37,7 +37,7 @@ export interface DestinationMemberConfigOptions<
 export interface ForMemberFunction<
   TSource extends {} = any,
   TDestination extends {} = any,
-  K extends keyof TDestination = TDestination[any]
+  K extends keyof TDestination = never
 > {
   (opts: DestinationMemberConfigOptions<TSource, TDestination, K>): void
 }
