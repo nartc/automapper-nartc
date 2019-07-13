@@ -3,6 +3,7 @@
 This is a fork of `automapper-ts` by [Bert Loedeman](https://github.com/loedeman). My goal is to re-create this awesome library with a more strong-type approach while learning `TypeScript` myself.
 
 ## Documentations
+Github Pages
 [https://nartc.github.io/automapper-nartc/](https://nartc.github.io/automapper-nartc/)
 
 ## Motivations
