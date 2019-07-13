@@ -693,7 +693,6 @@ import {
 export class AutoMapper extends AutoMapperBase {
   private static _instance: AutoMapper = new AutoMapper()
 
-  private readonly _mappings!: { [key: string]: Mapping }
   private readonly _profiles!: { [key: string]: any }
 
   public static getInstance(): AutoMapper {
@@ -707,7 +706,6 @@ export class AutoMapper extends AutoMapperBase {
     }
 
     AutoMapper._instance = this
-    this._mappings = {}
     this._profiles = {}
   }
 
@@ -733,7 +731,7 @@ export class AutoMapper extends AutoMapperBase {
     destination: Constructable<TDestination>,
     sourceObj: TSource
   ): TDestination {
-    const mapping = this._mappings[super.getMappingKey(source.name, destination.name)]
+    const mapping = super._getMapping(source, destination)
     if (!mapping) {
       throw new Error(
         `Mapping not found for source ${source.name} and destination ${destination.name}`
@@ -747,32 +745,8 @@ export class AutoMapper extends AutoMapperBase {
     source: Constructable<TSource>,
     destination: Constructable<TDestination>
   ): CreateMapFluentFunctions<TSource, TDestination> {
-    const key = super.getMappingKey(source.name, destination.name)
-    if (this._mappings[key]) {
-      throw new Error(
-        `Mapping for source ${source.name} to destination ${destination.name} is already existed`
-      )
-    }
-
-    const mapping = this._createMappingObject(source, destination, key)
+    const mapping = super._createMappingObject(source, destination)
     return this._createMappingFluentFunctions<TSource, TDestination>(mapping)
-  }
-
-  private _createMappingObject<TSource extends {} = any, TDestination extends {} = any>(
-    source: Constructable<TSource>,
-    destination: Constructable<TDestination>,
-    mappingKey: string
-  ): Mapping<TSource, TDestination> {
-    const mapping = {
-      source,
-      destination,
-      sourceKey: source.name,
-      destinationKey: destination.name,
-      properties: []
-    }
-
-    this._mappings[mappingKey] = mapping
-    return mapping
   }
 
   private _createMappingFluentFunctions<TSource extends {} = any, TDestination extends {} = any>(
@@ -793,7 +767,7 @@ export class AutoMapper extends AutoMapperBase {
     fn: ForMemberFunction<TSource, TDestination>,
     fluentFunctions: CreateMapFluentFunctions<TSource, TDestination>
   ): CreateMapFluentFunctions<TSource, TDestination> {
-    const type = super.getTransformationType(fn)
+    const transformationType = super.getTransformationType(fn)
     let mapFrom: MapFromCallback<TSource, TDestination>
     let condition: ConditionPredicate<TSource>
 
@@ -814,7 +788,7 @@ export class AutoMapper extends AutoMapperBase {
     const mappingProperty: MappingProperty<TSource, TDestination> = {
       destinationKey: key,
       transformation: {
-        transformationType: super.getTransformationType(fn),
+        transformationType,
         // @ts-ignore
         mapFrom,
         // @ts-ignore
@@ -822,7 +796,7 @@ export class AutoMapper extends AutoMapperBase {
       }
     }
 
-    mapping.properties.push(mappingProperty)
+    mapping.properties.set(key, mappingProperty)
 
     return fluentFunctions
   }

@@ -339,11 +339,15 @@
 //   }
 // }
 
-import { ForMemberFunction, Mapping, TransformationType } from './types'
+import { Constructable, ForMemberFunction, Mapping, TransformationType } from './types'
 
 export abstract class AutoMapperBase {
-  protected getMappingKey(sourceKey: string, destinationKey: string): string {
-    return sourceKey + '->' + destinationKey
+  protected _mappingNames: Map<Constructable, Constructable>
+  protected readonly _mappings!: { [key: string]: Mapping }
+
+  protected constructor() {
+    this._mappingNames = new Map()
+    this._mappings = {}
   }
 
   protected getTransformationType<TSource extends {} = any, TDestination extends {} = any>(
@@ -367,23 +371,29 @@ export abstract class AutoMapperBase {
   ): TDestination {
     const { destination, properties } = mapping
     const destinationObj = new destination()
-    const configProps = properties.map(p => p.destinationKey)
+    const configProps = [...properties.keys()]
     const sourceKeys = Object.keys(sourceObj)
     const len = sourceKeys.length
 
     for (let i = 0; i < len; i++) {
-      if (
-        configProps.includes(sourceKeys[i] as keyof TDestination) ||
-        !destinationObj.hasOwnProperty(sourceKeys[i]) ||
-        typeof (sourceObj as any)[sourceKeys[i]] === 'object'
-      ) {
+      const sourceVal = (sourceObj as any)[sourceKeys[i]]
+      if (this._isClass(sourceVal)) {
+        const nestedMapping = this._getMappingForNestedKey(sourceVal)
+        ;(destinationObj as any)[sourceKeys[i]] = this._map(sourceVal, nestedMapping as any)
         continue
       }
 
-      ;(destinationObj as any)[sourceKeys[i]] = (sourceObj as any)[sourceKeys[i]]
+      if (
+        configProps.includes(sourceKeys[i] as keyof TDestination) ||
+        !destinationObj.hasOwnProperty(sourceKeys[i]) ||
+        typeof sourceVal === 'object'
+      ) {
+        continue
+      }
+      ;(destinationObj as any)[sourceKeys[i]] = sourceVal
     }
 
-    for (let prop of properties) {
+    for (let prop of properties.values()) {
       if (prop.transformation.transformationType === TransformationType.Ignore) {
         continue
       }
@@ -400,5 +410,73 @@ export abstract class AutoMapperBase {
     }
 
     return destinationObj
+  }
+
+  protected _createMappingObject<TSource extends {} = any, TDestination extends {} = any>(
+    source: Constructable<TSource>,
+    destination: Constructable<TDestination>
+  ): Mapping<TSource, TDestination> {
+    const key = this._hasMapping(source, destination)
+
+    const mapping = {
+      source,
+      destination,
+      sourceKey: source.name,
+      destinationKey: destination.name,
+      properties: new Map()
+    }
+
+    this._mappings[key] = mapping
+    this._mappingNames.set(source, destination)
+    return mapping
+  }
+
+  protected _getMapping<TSource, TDestination>(
+    source: Constructable<TSource>,
+    destination: Constructable<TDestination>
+  ): Mapping<TSource, TDestination> {
+    return this._mappings[this._getMappingKey(source.name, destination.name)]
+  }
+
+  private _hasMapping<TSource, TDestination>(
+    source: Constructable<TSource>,
+    destination: Constructable<TDestination>
+  ): string {
+    const key = this._getMappingKey(source.name, destination.name)
+    if (this._mappings[key] || this._mappingNames.has(source)) {
+      throw new Error(
+        `Mapping for source ${source.name} and destination ${destination.name} is already existed`
+      )
+    }
+
+    return key
+  }
+
+  private _getMappingKey(sourceKey: string, destinationKey: string): string {
+    return sourceKey + '->' + destinationKey
+  }
+
+  private _isClass<TSource>(fn: Constructable<TSource>): boolean {
+    return /^\s*class/.test(fn.toString())
+  }
+
+  private _getMappingForNestedKey<TSource, TDestination>(
+    val: Constructable<TSource>
+  ): Mapping<TSource, TDestination> {
+    const destination = this._mappingNames.get(val) as Constructable<TDestination>
+
+    if (!destination) {
+      throw new Error(`Mapping not found for source ${val.name}`)
+    }
+
+    const mapping = this._getMapping(val, destination as Constructable<TDestination>)
+
+    if (!mapping) {
+      throw new Error(
+        `Mapping not found for source ${val.name} and destination ${destination.name}`
+      )
+    }
+
+    return mapping
   }
 }

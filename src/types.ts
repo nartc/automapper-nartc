@@ -74,5 +74,5 @@ export interface Mapping<TSource extends {} = any, TDestination extends {} = any
   destination: Constructable<TDestination>
   sourceKey: string
   destinationKey: string
-  properties: Array<MappingProperty<TSource, TDestination>>
+  properties: Map<keyof TDestination, MappingProperty<TSource, TDestination>>
 }
