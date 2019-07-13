@@ -469,7 +469,7 @@ export abstract class AutoMapperBase {
       throw new Error(`Mapping not found for source ${val.name}`)
     }
 
-    const mapping = this._getMapping(val, destination as Constructable<TDestination>)
+    const mapping = this._getMapping(val, destination)
 
     if (!mapping) {
       throw new Error(
