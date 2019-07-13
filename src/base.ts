@@ -476,14 +476,15 @@ export abstract class AutoMapperBase {
     const destination = this._mappingNames[mappingName] as Constructable<TDestination>;
 
     if (!destination) {
-      throw new Error(`Mapping not found for source ${val.name}`);
+      throw new Error(`Mapping not found for source ${mappingName}`);
     }
 
     const mapping = this._getMapping(val, destination);
 
     if (!mapping) {
       throw new Error(
-        `Mapping not found for source ${val.name} and destination ${destination.name}`
+        `Mapping not found for source ${mappingName} and destination ${destination.name ||
+          destination.constructor.name}`
       );
     }
 
