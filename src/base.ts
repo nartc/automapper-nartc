@@ -470,7 +470,8 @@ export abstract class AutoMapperBase {
   private _getMappingForNestedKey<TSource, TDestination>(
     val: Constructable<TSource>
   ): Mapping<TSource, TDestination> {
-    const destination = this._mappingNames[val.name] as Constructable<TDestination>;
+    const mappingName = val.name ? val.constructor.name : val.name;
+    const destination = this._mappingNames[mappingName] as Constructable<TDestination>;
 
     if (!destination) {
       throw new Error(`Mapping not found for source ${val.name}`);
