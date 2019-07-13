@@ -1,6 +1,6 @@
 declare module 'automapper-nartc/automapper' {
   import { AutoMapperBase } from 'automapper-nartc/base';
-  import { Configuration, Constructable, CreateMapFluentFunctions } from 'automapper-nartc/types';
+  import { Configuration, Constructable, CreateMapFluentFunctions, MappingProfile } from 'automapper-nartc/types';
   export class AutoMapper extends AutoMapperBase {
       private static _instance;
       private readonly _profiles;
@@ -11,6 +11,12 @@ declare module 'automapper-nartc/automapper' {
       createMap<TSource extends {} = any, TDestination extends {} = any>(source: Constructable<TSource>, destination: Constructable<TDestination>): CreateMapFluentFunctions<TSource, TDestination>;
       private _createMappingFluentFunctions;
       private _createMapForMember;
+  }
+  export abstract class MappingProfileBase implements MappingProfile {
+      profileName: string;
+      protected constructor();
+      abstract configure(): void;
+      protected createMap<TSource, TDestination>(source: Constructable<TSource>, destination: Constructable<TDestination>): CreateMapFluentFunctions<TSource, TDestination>;
   }
   export const Mapper: AutoMapper;
 
@@ -41,7 +47,6 @@ declare module 'automapper-nartc/helpers' {
 }
 declare module 'automapper-nartc/index' {
   export * from 'automapper-nartc/base';
-  export * from 'automapper-nartc/profile';
   export * from 'automapper-nartc/types';
   export * from 'automapper-nartc/automapper';
 
@@ -50,16 +55,6 @@ declare module 'automapper-nartc/naming/camel-case-naming-convention' {
 
 }
 declare module 'automapper-nartc/naming/pascal-case-naming-convention' {
-
-}
-declare module 'automapper-nartc/profile' {
-  import { Constructable, MappingProfile, CreateMapFluentFunctions } from 'automapper-nartc/types';
-  export abstract class MappingProfileBase implements MappingProfile {
-      profileName: string;
-      protected constructor();
-      abstract configure(): void;
-      protected createMap<TSource, TDestination>(source: Constructable<TSource>, destination: Constructable<TDestination>): CreateMapFluentFunctions<TSource, TDestination>;
-  }
 
 }
 declare module 'automapper-nartc/types' {
