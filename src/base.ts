@@ -438,7 +438,9 @@ export abstract class AutoMapperBase {
     source: Constructable<TSource>,
     destination: Constructable<TDestination>
   ): Mapping<TSource, TDestination> {
-    return this._mappings[this._getMappingKey(source.name, destination.name)];
+    const sourceName = source.name || source.constructor.name;
+    const destinationName = destination.name || destination.constructor.name;
+    return this._mappings[this._getMappingKey(sourceName, destinationName)];
   }
 
   private _hasMapping<TSource, TDestination>(
