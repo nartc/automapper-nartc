@@ -60,7 +60,8 @@ export interface Configuration {
 
 export interface MappingTransformation<TSource extends {} = any, TDestination extends {} = any> {
   transformationType: TransformationType
-  transformOptions: DestinationMemberConfigOptions<TSource, TDestination>
+  mapFrom: (source: TSource) => ReturnType<MapFromCallback<TSource, TDestination>>
+  condition: ConditionPredicate<TSource>
 }
 
 export interface MappingProperty<TSource extends {} = any, TDestination extends {} = any> {

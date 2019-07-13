@@ -389,20 +389,14 @@ export abstract class AutoMapperBase {
       }
 
       if (prop.transformation.transformationType === TransformationType.Condition) {
-        const condition = prop.transformation.transformOptions.condition.arguments[0](
-          sourceObj
-        ) as boolean
+        const condition = prop.transformation.condition(sourceObj)
         if (condition) {
           destinationObj[prop.destinationKey] = (sourceObj as any)[prop.destinationKey]
         }
         continue
       }
 
-      destinationObj[
-        prop.destinationKey
-      ] = prop.transformation.transformOptions.mapFrom.arguments[0](
-        sourceObj
-      ) as TDestination[keyof TDestination]
+      destinationObj[prop.destinationKey] = prop.transformation.mapFrom(sourceObj)
     }
 
     return destinationObj

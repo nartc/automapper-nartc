@@ -678,12 +678,16 @@ import { AutoMapperBase } from './base'
 // import "core-js/fn/array.find"
 // ...
 import {
+  ConditionPredicate,
   Configuration,
   Constructable,
   CreateMapFluentFunctions,
+  DestinationMemberConfigOptions,
   ForMemberFunction,
+  MapFromCallback,
   Mapping,
-  MappingProperty
+  MappingProperty,
+  TransformationType
 } from './types'
 
 export class AutoMapper extends AutoMapperBase {
@@ -789,11 +793,32 @@ export class AutoMapper extends AutoMapperBase {
     fn: ForMemberFunction<TSource, TDestination>,
     fluentFunctions: CreateMapFluentFunctions<TSource, TDestination>
   ): CreateMapFluentFunctions<TSource, TDestination> {
+    const type = super.getTransformationType(fn)
+    let mapFrom: MapFromCallback<TSource, TDestination>
+    let condition: ConditionPredicate<TSource>
+
+    const opts: DestinationMemberConfigOptions<TSource, TDestination> = {
+      mapFrom: cb => {
+        mapFrom = cb
+      },
+      condition: predicate => {
+        condition = predicate
+      },
+      ignore(): void {
+        // do nothing
+      }
+    }
+
+    fn(opts)
+
     const mappingProperty: MappingProperty<TSource, TDestination> = {
       destinationKey: key,
       transformation: {
         transformationType: super.getTransformationType(fn),
-        transformOptions: fn.arguments[0]
+        // @ts-ignore
+        mapFrom,
+        // @ts-ignore
+        condition
       }
     }
 
