@@ -457,7 +457,11 @@ export abstract class AutoMapperBase {
   }
 
   private _isClass<TSource>(fn: Constructable<TSource>): boolean {
-    return /^\s*class/.test(fn.toString())
+    return (
+      fn.constructor &&
+      /^\s*function/.test(fn.constructor.toString()) &&
+      fn.constructor.toString().includes(fn.constructor.name)
+    )
   }
 
   private _getMappingForNestedKey<TSource, TDestination>(
