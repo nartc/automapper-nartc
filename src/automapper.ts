@@ -720,6 +720,8 @@ export class AutoMapper extends AutoMapperBase {
         return this._createMap(source, destination)
       }
     }
+
+    configFn(configuration)
   }
 
   public map<TSource extends {} = any, TDestination extends {} = any>(
