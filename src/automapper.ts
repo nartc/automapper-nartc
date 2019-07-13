@@ -1,3 +1,131 @@
+import { AutoMapperBase } from './base';
+import {
+  ConditionPredicate,
+  Configuration,
+  Constructable,
+  CreateMapFluentFunctions,
+  DestinationMemberConfigOptions,
+  ForMemberFunction,
+  MapFromCallback,
+  Mapping,
+  MappingProfile,
+  MappingProperty
+} from './types';
+
+export class AutoMapper extends AutoMapperBase {
+  private static _instance: AutoMapper = new AutoMapper();
+
+  private readonly _profiles!: { [key: string]: any };
+
+  public static getInstance(): AutoMapper {
+    return this._instance;
+  }
+
+  constructor() {
+    super();
+    if (AutoMapper._instance) {
+      return AutoMapper._instance;
+    }
+
+    AutoMapper._instance = this;
+    this._profiles = {};
+  }
+
+  public initialize(configFn: (config: Configuration) => void): void {
+    const configuration: Configuration = {
+      addProfile: (profile: MappingProfile): void => {
+        profile.configure();
+        this._profiles[profile.profileName] = profile;
+      },
+      createMap: <TSource extends {} = any, TDestination extends {} = any>(
+        source: Constructable<TSource>,
+        destination: Constructable<TDestination>
+      ): CreateMapFluentFunctions<TSource, TDestination> => {
+        return this.createMap(source, destination);
+      }
+    };
+
+    configFn(configuration);
+  }
+
+  public map<TSource extends {} = any, TDestination extends {} = any>(
+    source: Constructable<TSource>,
+    destination: Constructable<TDestination>,
+    sourceObj: TSource
+  ): TDestination {
+    const mapping = super._getMapping(source, destination);
+    if (!mapping) {
+      throw new Error(
+        `Mapping not found for source ${source.name} and destination ${destination.name}`
+      );
+    }
+
+    return super._map(sourceObj, mapping);
+  }
+
+  public createMap<TSource extends {} = any, TDestination extends {} = any>(
+    source: Constructable<TSource>,
+    destination: Constructable<TDestination>
+  ): CreateMapFluentFunctions<TSource, TDestination> {
+    const mapping = super._createMappingObject(source, destination);
+    return this._createMappingFluentFunctions<TSource, TDestination>(mapping);
+  }
+
+  private _createMappingFluentFunctions<TSource extends {} = any, TDestination extends {} = any>(
+    mapping: Mapping<TSource, TDestination>
+  ): CreateMapFluentFunctions<TSource, TDestination> {
+    const fluentFunctions: CreateMapFluentFunctions<TSource, TDestination> = {
+      forMember: (destinationKey, forMemberFn) => {
+        return this._createMapForMember(mapping, destinationKey, forMemberFn, fluentFunctions);
+      }
+    };
+
+    return fluentFunctions;
+  }
+
+  private _createMapForMember<TSource extends {} = any, TDestination extends {} = any>(
+    mapping: Mapping<TSource, TDestination>,
+    key: keyof TDestination,
+    fn: ForMemberFunction<TSource, TDestination>,
+    fluentFunctions: CreateMapFluentFunctions<TSource, TDestination>
+  ): CreateMapFluentFunctions<TSource, TDestination> {
+    const transformationType = super.getTransformationType(fn);
+    let mapFrom: MapFromCallback<TSource, TDestination>;
+    let condition: ConditionPredicate<TSource>;
+
+    const opts: DestinationMemberConfigOptions<TSource, TDestination> = {
+      mapFrom: cb => {
+        mapFrom = cb;
+      },
+      condition: predicate => {
+        condition = predicate;
+      },
+      ignore(): void {
+        // do nothing
+      }
+    };
+
+    fn(opts);
+
+    const mappingProperty: MappingProperty<TSource, TDestination> = {
+      destinationKey: key,
+      transformation: {
+        transformationType,
+        // @ts-ignore
+        mapFrom,
+        // @ts-ignore
+        condition
+      }
+    };
+
+    mapping.properties.set(key, mappingProperty);
+
+    return fluentFunctions;
+  }
+}
+
+export const Mapper = AutoMapper.getInstance();
+
 // // Import here Polyfills if needed. Recommended core-js (npm i -D core-js)
 // import { AutoMapperBase } from './base'
 // // import "core-js/fn/array.find"
@@ -672,134 +800,6 @@
 // }
 //
 // export const Mapper = new AutoMapper()
-
 // Import here Polyfills if needed. Recommended core-js (npm i -D core-js)
-import { AutoMapperBase } from './base'
 // import "core-js/fn/array.find"
 // ...
-import {
-  ConditionPredicate,
-  Configuration,
-  Constructable,
-  CreateMapFluentFunctions,
-  DestinationMemberConfigOptions,
-  ForMemberFunction,
-  MapFromCallback,
-  Mapping,
-  MappingProperty,
-  TransformationType
-} from './types'
-
-export class AutoMapper extends AutoMapperBase {
-  private static _instance: AutoMapper = new AutoMapper()
-
-  private readonly _profiles!: { [key: string]: any }
-
-  public static getInstance(): AutoMapper {
-    return this._instance
-  }
-
-  constructor() {
-    super()
-    if (AutoMapper._instance) {
-      return AutoMapper._instance
-    }
-
-    AutoMapper._instance = this
-    this._profiles = {}
-  }
-
-  public initialize(configFn: (config: Configuration) => void): void {
-    const configuration: Configuration = {
-      addProfile: (profile: any): void => {
-        // profile.configure();
-        this._profiles[profile.profileName] = profile
-      },
-      createMap: <TSource extends {} = any, TDestination extends {} = any>(
-        source: Constructable<TSource>,
-        destination: Constructable<TDestination>
-      ): CreateMapFluentFunctions<TSource, TDestination> => {
-        return this._createMap(source, destination)
-      }
-    }
-
-    configFn(configuration)
-  }
-
-  public map<TSource extends {} = any, TDestination extends {} = any>(
-    source: Constructable<TSource>,
-    destination: Constructable<TDestination>,
-    sourceObj: TSource
-  ): TDestination {
-    const mapping = super._getMapping(source, destination)
-    if (!mapping) {
-      throw new Error(
-        `Mapping not found for source ${source.name} and destination ${destination.name}`
-      )
-    }
-
-    return super._map(sourceObj, mapping)
-  }
-
-  private _createMap<TSource extends {} = any, TDestination extends {} = any>(
-    source: Constructable<TSource>,
-    destination: Constructable<TDestination>
-  ): CreateMapFluentFunctions<TSource, TDestination> {
-    const mapping = super._createMappingObject(source, destination)
-    return this._createMappingFluentFunctions<TSource, TDestination>(mapping)
-  }
-
-  private _createMappingFluentFunctions<TSource extends {} = any, TDestination extends {} = any>(
-    mapping: Mapping<TSource, TDestination>
-  ): CreateMapFluentFunctions<TSource, TDestination> {
-    const fluentFunctions: CreateMapFluentFunctions<TSource, TDestination> = {
-      forMember: (destinationKey, forMemberFn) => {
-        return this._createMapForMember(mapping, destinationKey, forMemberFn, fluentFunctions)
-      }
-    }
-
-    return fluentFunctions
-  }
-
-  private _createMapForMember<TSource extends {} = any, TDestination extends {} = any>(
-    mapping: Mapping<TSource, TDestination>,
-    key: keyof TDestination,
-    fn: ForMemberFunction<TSource, TDestination>,
-    fluentFunctions: CreateMapFluentFunctions<TSource, TDestination>
-  ): CreateMapFluentFunctions<TSource, TDestination> {
-    const transformationType = super.getTransformationType(fn)
-    let mapFrom: MapFromCallback<TSource, TDestination>
-    let condition: ConditionPredicate<TSource>
-
-    const opts: DestinationMemberConfigOptions<TSource, TDestination> = {
-      mapFrom: cb => {
-        mapFrom = cb
-      },
-      condition: predicate => {
-        condition = predicate
-      },
-      ignore(): void {
-        // do nothing
-      }
-    }
-
-    fn(opts)
-
-    const mappingProperty: MappingProperty<TSource, TDestination> = {
-      destinationKey: key,
-      transformation: {
-        transformationType,
-        // @ts-ignore
-        mapFrom,
-        // @ts-ignore
-        condition
-      }
-    }
-
-    mapping.properties.set(key, mappingProperty)
-
-    return fluentFunctions
-  }
-}
-
-export const Mapper = AutoMapper.getInstance()
