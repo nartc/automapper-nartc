@@ -339,48 +339,51 @@
 //   }
 // }
 
-import { Constructable, ForMemberFunction, Mapping, TransformationType } from './types'
+import { Constructable, ForMemberFunction, Mapping, TransformationType } from './types';
 
 export abstract class AutoMapperBase {
-  protected _mappingNames: { [key: string]: Constructable }
-  protected readonly _mappings!: { [key: string]: Mapping }
+  protected _mappingNames: { [key: string]: Constructable };
+  protected readonly _mappings!: { [key: string]: Mapping };
 
   protected constructor() {
-    this._mappingNames = {}
-    this._mappings = {}
+    this._mappingNames = {};
+    this._mappings = {};
   }
 
   protected getTransformationType<TSource extends {} = any, TDestination extends {} = any>(
     forMemberFn: ForMemberFunction<TSource, TDestination>
   ): TransformationType {
-    const fnString = forMemberFn.toString()
+    const fnString = forMemberFn.toString();
     if (fnString.includes('ignore')) {
-      return TransformationType.Ignore
+      return TransformationType.Ignore;
     }
 
     if (fnString.includes('condition')) {
-      return TransformationType.Condition
+      return TransformationType.Condition;
     }
 
-    return TransformationType.MapFrom
+    return TransformationType.MapFrom;
   }
 
   protected _map<TSource extends {} = any, TDestination extends {} = any>(
     sourceObj: TSource,
     mapping: Mapping<TSource, TDestination>
   ): TDestination {
-    const { destination, properties } = mapping
-    const destinationObj = new destination()
-    const configProps = [...properties.keys()]
-    const sourceKeys = Object.keys(sourceObj)
-    const len = sourceKeys.length
+    const { destination, properties } = mapping;
+    const destinationObj = new destination();
+    const configProps = [...properties.keys()];
+    const sourceKeys = Object.keys(sourceObj);
+    const len = sourceKeys.length;
 
     for (let i = 0; i < len; i++) {
-      const sourceVal = (sourceObj as any)[sourceKeys[i]]
-      if (this._isClass(sourceVal)) {
-        const nestedMapping = this._getMappingForNestedKey(sourceVal)
-        ;(destinationObj as any)[sourceKeys[i]] = this._map(sourceVal, nestedMapping as any)
-        continue
+      const sourceVal = (sourceObj as any)[sourceKeys[i]];
+      if (
+        (typeof sourceVal === 'object' || typeof sourceVal === 'function') &&
+        this._isClass(sourceVal)
+      ) {
+        const nestedMapping = this._getMappingForNestedKey(sourceVal);
+        (destinationObj as any)[sourceKeys[i]] = this._map(sourceVal, nestedMapping as any);
+        continue;
       }
 
       if (
@@ -388,35 +391,35 @@ export abstract class AutoMapperBase {
         !destinationObj.hasOwnProperty(sourceKeys[i]) ||
         typeof sourceVal === 'object'
       ) {
-        continue
+        continue;
       }
-      ;(destinationObj as any)[sourceKeys[i]] = sourceVal
+      (destinationObj as any)[sourceKeys[i]] = sourceVal;
     }
 
     for (let prop of properties.values()) {
       if (prop.transformation.transformationType === TransformationType.Ignore) {
-        continue
+        continue;
       }
 
       if (prop.transformation.transformationType === TransformationType.Condition) {
-        const condition = prop.transformation.condition(sourceObj)
+        const condition = prop.transformation.condition(sourceObj);
         if (condition) {
-          destinationObj[prop.destinationKey] = (sourceObj as any)[prop.destinationKey]
+          destinationObj[prop.destinationKey] = (sourceObj as any)[prop.destinationKey];
         }
-        continue
+        continue;
       }
 
-      destinationObj[prop.destinationKey] = prop.transformation.mapFrom(sourceObj)
+      destinationObj[prop.destinationKey] = prop.transformation.mapFrom(sourceObj);
     }
 
-    return destinationObj
+    return destinationObj;
   }
 
   protected _createMappingObject<TSource extends {} = any, TDestination extends {} = any>(
     source: Constructable<TSource>,
     destination: Constructable<TDestination>
   ): Mapping<TSource, TDestination> {
-    const key = this._hasMapping(source, destination)
+    const key = this._hasMapping(source, destination);
 
     const mapping = {
       source,
@@ -424,36 +427,36 @@ export abstract class AutoMapperBase {
       sourceKey: source.name,
       destinationKey: destination.name,
       properties: new Map()
-    }
+    };
 
-    this._mappings[key] = mapping
-    this._mappingNames[source.name] = destination
-    return mapping
+    this._mappings[key] = mapping;
+    this._mappingNames[source.name] = destination;
+    return mapping;
   }
 
   protected _getMapping<TSource, TDestination>(
     source: Constructable<TSource>,
     destination: Constructable<TDestination>
   ): Mapping<TSource, TDestination> {
-    return this._mappings[this._getMappingKey(source.name, destination.name)]
+    return this._mappings[this._getMappingKey(source.name, destination.name)];
   }
 
   private _hasMapping<TSource, TDestination>(
     source: Constructable<TSource>,
     destination: Constructable<TDestination>
   ): string {
-    const key = this._getMappingKey(source.name, destination.name)
+    const key = this._getMappingKey(source.name, destination.name);
     if (this._mappings[key] || this._mappingNames[source.name]) {
       throw new Error(
         `Mapping for source ${source.name} and destination ${destination.name} is already existed`
-      )
+      );
     }
 
-    return key
+    return key;
   }
 
   private _getMappingKey(sourceKey: string, destinationKey: string): string {
-    return sourceKey + '->' + destinationKey
+    return sourceKey + '->' + destinationKey;
   }
 
   private _isClass<TSource>(fn: Constructable<TSource>): boolean {
@@ -461,26 +464,26 @@ export abstract class AutoMapperBase {
       fn.constructor &&
       /^\s*function/.test(fn.constructor.toString()) &&
       fn.constructor.toString().includes(fn.constructor.name)
-    )
+    );
   }
 
   private _getMappingForNestedKey<TSource, TDestination>(
     val: Constructable<TSource>
   ): Mapping<TSource, TDestination> {
-    const destination = this._mappingNames[val.name] as Constructable<TDestination>
+    const destination = this._mappingNames[val.name] as Constructable<TDestination>;
 
     if (!destination) {
-      throw new Error(`Mapping not found for source ${val.name}`)
+      throw new Error(`Mapping not found for source ${val.name}`);
     }
 
-    const mapping = this._getMapping(val, destination)
+    const mapping = this._getMapping(val, destination);
 
     if (!mapping) {
       throw new Error(
         `Mapping not found for source ${val.name} and destination ${destination.name}`
-      )
+      );
     }
 
-    return mapping
+    return mapping;
   }
 }
