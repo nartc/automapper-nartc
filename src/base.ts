@@ -342,11 +342,11 @@
 import { Constructable, ForMemberFunction, Mapping, TransformationType } from './types'
 
 export abstract class AutoMapperBase {
-  protected _mappingNames: Map<Constructable, Constructable>
+  protected _mappingNames: { [key: string]: Constructable }
   protected readonly _mappings!: { [key: string]: Mapping }
 
   protected constructor() {
-    this._mappingNames = new Map()
+    this._mappingNames = {}
     this._mappings = {}
   }
 
@@ -427,7 +427,7 @@ export abstract class AutoMapperBase {
     }
 
     this._mappings[key] = mapping
-    this._mappingNames.set(source, destination)
+    this._mappingNames[source.name] = destination
     return mapping
   }
 
@@ -443,7 +443,7 @@ export abstract class AutoMapperBase {
     destination: Constructable<TDestination>
   ): string {
     const key = this._getMappingKey(source.name, destination.name)
-    if (this._mappings[key] || this._mappingNames.has(source)) {
+    if (this._mappings[key] || this._mappingNames[source.name]) {
       throw new Error(
         `Mapping for source ${source.name} and destination ${destination.name} is already existed`
       )
@@ -467,7 +467,7 @@ export abstract class AutoMapperBase {
   private _getMappingForNestedKey<TSource, TDestination>(
     val: Constructable<TSource>
   ): Mapping<TSource, TDestination> {
-    const destination = this._mappingNames.get(val) as Constructable<TDestination>
+    const destination = this._mappingNames[val.name] as Constructable<TDestination>
 
     if (!destination) {
       throw new Error(`Mapping not found for source ${val.name}`)
