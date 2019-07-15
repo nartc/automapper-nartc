@@ -63,6 +63,21 @@ export class AutoMapper extends AutoMapperBase {
     return super._map(sourceObj, mapping);
   }
 
+  public mapArray<TSource extends {} = any, TDestination extends {} = any>(
+    source: Constructable<TSource>,
+    destination: Constructable<TDestination>,
+    sourceObj: TSource[]
+  ): TDestination[] {
+    const mapping = super._getMapping(source, destination);
+    if (!mapping) {
+      throw new Error(
+        `Mapping not found for source ${source.name} and destination ${destination.name}`
+      );
+    }
+
+    return super._mapArray(sourceObj, mapping);
+  }
+
   public createMap<TSource extends {} = any, TDestination extends {} = any>(
     source: Constructable<TSource>,
     destination: Constructable<TDestination>

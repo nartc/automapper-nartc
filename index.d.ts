@@ -8,6 +8,7 @@ declare module 'automapper-nartc/automapper' {
       constructor();
       initialize(configFn: (config: Configuration) => void): void;
       map<TSource extends {} = any, TDestination extends {} = any>(source: Constructable<TSource>, destination: Constructable<TDestination>, sourceObj: TSource): TDestination;
+      mapArray<TSource extends {} = any, TDestination extends {} = any>(source: Constructable<TSource>, destination: Constructable<TDestination>, sourceObj: TSource[]): TDestination[];
       createMap<TSource extends {} = any, TDestination extends {} = any>(source: Constructable<TSource>, destination: Constructable<TDestination>): CreateMapFluentFunctions<TSource, TDestination>;
       private _createMappingFluentFunctions;
       private _createMapForMember;
@@ -32,6 +33,7 @@ declare module 'automapper-nartc/base' {
       };
       protected constructor();
       protected getTransformationType<TSource extends {} = any, TDestination extends {} = any>(forMemberFn: ForMemberFunction<TSource, TDestination>): TransformationType;
+      protected _mapArray<TSource extends {} = any, TDestination extends {} = any>(sourceArray: TSource[], mapping: Mapping<TSource, TDestination>): TDestination[];
       protected _map<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): TDestination;
       protected _createMappingObject<TSource extends {} = any, TDestination extends {} = any>(source: Constructable<TSource>, destination: Constructable<TDestination>): Mapping<TSource, TDestination>;
       protected _getMapping<TSource, TDestination>(source: Constructable<TSource>, destination: Constructable<TDestination>): Mapping<TSource, TDestination>;
