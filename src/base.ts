@@ -1,5 +1,4 @@
 import { Constructable, ForMemberFunction, Mapping, TransformationType } from './types';
-import { isArray } from 'util';
 
 export abstract class AutoMapperBase {
   protected _mappingNames: { [key: string]: Constructable };
@@ -44,7 +43,7 @@ export abstract class AutoMapperBase {
 
     for (let i = 0; i < len; i++) {
       const sourceVal = (sourceObj as any)[sourceKeys[i]];
-      if (typeof sourceVal === 'object' && isArray(sourceVal)) {
+      if (typeof sourceVal === 'object' && Array.isArray(sourceVal)) {
         const nestedMapping = this._getMappingForNestedKey(sourceVal[0]);
         (destinationObj as any)[sourceKeys[i]] = this._mapArray(sourceVal, nestedMapping as any);
         continue;
