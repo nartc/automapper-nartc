@@ -45,8 +45,7 @@ export abstract class AutoMapperBase {
       const sourceVal = (sourceObj as any)[sourceKeys[i]];
       if (
         configProps.includes(sourceKeys[i] as keyof TDestination) ||
-        !destinationObj.hasOwnProperty(sourceKeys[i]) ||
-        typeof sourceVal === 'object'
+        !destinationObj.hasOwnProperty(sourceKeys[i])
       ) {
         continue;
       }
