@@ -7,6 +7,9 @@ This is a fork of `automapper-ts` by [Bert Loedeman](https://github.com/loedeman
 Github Pages
 [https://nartc.github.io/automapper-nartc/](https://nartc.github.io/automapper-nartc/)
 
+Stackblitz Demo
+[Stackblitz](https://stackblitz.com/edit/typescript-automapper-nartc)
+
 ## Motivations
 
 I know that `AutoMapper` is pretty weak in `TypeScript` because of how `Reflection` works in `TypeScript`. However, it'd be nice to have some type of `Mapper` that works for `NodeJS` development.
