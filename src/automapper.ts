@@ -39,6 +39,7 @@ export class AutoMapper extends AutoMapperBase {
    *
    * @example
    *
+   *
    * ```ts
    * Mapper.initialize(config => {
    *   config.addProfile(new Profile());
@@ -70,6 +71,7 @@ export class AutoMapper extends AutoMapperBase {
    * Map from Source to Destination
    *
    * @example
+   *
    *
    * ```ts
    * const user = new User();
@@ -117,6 +119,7 @@ export class AutoMapper extends AutoMapperBase {
    * Map from a list of Source to a list of Destination
    *
    * @example
+   *
    *
    * ```ts
    * const addresses = [];
