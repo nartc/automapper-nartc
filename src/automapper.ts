@@ -49,33 +49,50 @@ export class AutoMapper extends AutoMapperBase {
   }
 
   public map<TSource extends {} = any, TDestination extends {} = any>(
+    sourceObj: TSource,
+    destination: Constructable<TDestination>
+  ): TDestination;
+  public map<TSource extends {} = any, TDestination extends {} = any>(
+    sourceObj: TSource,
     source: Constructable<TSource>,
-    destination: Constructable<TDestination>,
-    sourceObj: TSource
-  ): TDestination {
-    const mapping = super._getMapping(source, destination);
-    if (!mapping) {
-      throw new Error(
-        `Mapping not found for source ${source.name} and destination ${destination.name}`
-      );
+    destination: Constructable<TDestination>
+  ): TDestination;
+  public map<TSource extends {} = any, TDestination extends {} = any>(
+    sourceObj: TSource,
+    ...args: Constructable<TSource | TDestination>[]
+  ) {
+    if (args.length === 2) {
+      const mapping = super._getMapping(args[0] as Constructable<TSource>, args[1]);
+      return super._map(sourceObj, mapping);
     }
 
-    return super._map(sourceObj, mapping);
+    const mapping = super._getMappingForDestination(args[0] as Constructable<TDestination>);
+    return super._map(sourceObj, mapping as Mapping<TSource, TDestination>);
   }
 
   public mapArray<TSource extends {} = any, TDestination extends {} = any>(
+    sourceObj: TSource[],
+    destination: Constructable<TDestination>
+  ): TDestination[];
+  public mapArray<TSource extends {} = any, TDestination extends {} = any>(
+    sourceObj: TSource[],
     source: Constructable<TSource>,
-    destination: Constructable<TDestination>,
-    sourceObj: TSource[]
+    destination: Constructable<TDestination>
+  ): TDestination[];
+  public mapArray<TSource extends {} = any, TDestination extends {} = any>(
+    sourceObj: TSource[],
+    ...args: Constructable<TSource | TDestination>[]
   ): TDestination[] {
-    const mapping = super._getMapping(source, destination);
-    if (!mapping) {
-      throw new Error(
-        `Mapping not found for source ${source.name} and destination ${destination.name}`
+    if (args.length === 2) {
+      const mapping = super._getMapping(
+        args[0] as Constructable<TSource>,
+        args[1] as Constructable<TDestination>
       );
+      return super._mapArray(sourceObj, mapping);
     }
 
-    return super._mapArray(sourceObj, mapping);
+    const mapping = super._getMappingForDestination(args[0] as Constructable<TDestination>);
+    return super._mapArray(sourceObj, mapping as Mapping<TSource, TDestination>);
   }
 
   public createMap<TSource extends {} = any, TDestination extends {} = any>(

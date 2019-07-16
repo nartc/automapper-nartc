@@ -112,7 +112,37 @@ export abstract class AutoMapperBase {
   ): Mapping<TSource, TDestination> {
     const sourceName = source.name || source.constructor.name;
     const destinationName = destination.name || destination.constructor.name;
-    return this._mappings[this._getMappingKey(sourceName, destinationName)];
+    const mapping = this._mappings[this._getMappingKey(sourceName, destinationName)];
+
+    if (!mapping) {
+      throw new Error(
+        `Mapping not found for source ${sourceName} and destination ${destinationName}`
+      );
+    }
+
+    return mapping;
+  }
+
+  protected _getMappingForDestination<TSource, TDestination>(
+    destination: Constructable<TDestination>
+  ): Mapping<TSource, TDestination> {
+    const destinationName = destination.name || destination.constructor.name;
+    const sourceName = Object.keys(this._mappingNames).find(key => {
+      return (
+        this._mappingNames[key].name === destinationName ||
+        this._mappingNames[key].constructor.name === destinationName
+      );
+    });
+
+    const mapping = this._mappings[this._getMappingKey(sourceName as string, destinationName)];
+
+    if (!mapping) {
+      throw new Error(
+        `Mapping not found for source ${sourceName} and destination ${destinationName}`
+      );
+    }
+
+    return mapping;
   }
 
   private _hasMapping<TSource, TDestination>(

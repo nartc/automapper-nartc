@@ -7,8 +7,10 @@ declare module 'automapper-nartc/automapper' {
       static getInstance(): AutoMapper;
       constructor();
       initialize(configFn: (config: Configuration) => void): void;
-      map<TSource extends {} = any, TDestination extends {} = any>(source: Constructable<TSource>, destination: Constructable<TDestination>, sourceObj: TSource): TDestination;
-      mapArray<TSource extends {} = any, TDestination extends {} = any>(source: Constructable<TSource>, destination: Constructable<TDestination>, sourceObj: TSource[]): TDestination[];
+      map<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, destination: Constructable<TDestination>): TDestination;
+      map<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, source: Constructable<TSource>, destination: Constructable<TDestination>): TDestination;
+      mapArray<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource[], destination: Constructable<TDestination>): TDestination[];
+      mapArray<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource[], source: Constructable<TSource>, destination: Constructable<TDestination>): TDestination[];
       createMap<TSource extends {} = any, TDestination extends {} = any>(source: Constructable<TSource>, destination: Constructable<TDestination>): CreateMapFluentFunctions<TSource, TDestination>;
       private _createMappingFluentFunctions;
       private _createMapForMember;
@@ -37,6 +39,7 @@ declare module 'automapper-nartc/base' {
       protected _map<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): TDestination;
       protected _createMappingObject<TSource extends {} = any, TDestination extends {} = any>(source: Constructable<TSource>, destination: Constructable<TDestination>): Mapping<TSource, TDestination>;
       protected _getMapping<TSource, TDestination>(source: Constructable<TSource>, destination: Constructable<TDestination>): Mapping<TSource, TDestination>;
+      protected _getMappingForDestination<TSource, TDestination>(destination: Constructable<TDestination>): Mapping<TSource, TDestination>;
       private _hasMapping;
       private _getMappingKey;
       private _isClass;
