@@ -39,12 +39,13 @@ export class AutoMapper extends AutoMapperBase {
    *
    * @example
    *
+   * ```ts
    * Mapper.initialize(config => {
    *   config.addProfile(new Profile());
    *   config.createMap(Source, Destination);
    * })
+   * ```
    *
-   * @name initialize
    * @param {(config: Configuration) => void} configFn - Config function callback
    *
    */
@@ -70,11 +71,13 @@ export class AutoMapper extends AutoMapperBase {
    *
    * @example
    *
+   * ```ts
    * const user = new User();
    * user.firstName = 'John';
    * user.lastName = 'Doe';
    *
    * const userVm = Mapper.map(user, UserVm);
+   * ```
    *
    * @param {TSource} sourceObj - the sourceObj that are going to be mapped
    * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped values
@@ -115,10 +118,12 @@ export class AutoMapper extends AutoMapperBase {
    *
    * @example
    *
+   * ```ts
    * const addresses = [];
    * addresses.push(new Address(), new Address());
    *
    * const addressesVm = Mapper.mapArray(addresses, AddressVm);
+   * ```
    *
    * @param {TSource} sourceObj - the sourceObj that are going to be mapped
    * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped values
