@@ -1,11 +1,15 @@
-/**
- * Ignore - when opts.ignore() is used on forMember()
- * MapFrom - when opts.mapFrom() is used on forMember()
- * Condition - when opts.condition() is used on forMember()
- */
 export enum TransformationType {
+  /**
+   * when opts.ignore() is used on forMember()
+   */
   Ignore = 0,
+  /**
+   * when opts.mapFrom() is used on forMember()
+   */
   MapFrom = 1,
+  /**
+   * when opts.condition() is used on forMember()
+   */
   Condition = 2
 }
 
