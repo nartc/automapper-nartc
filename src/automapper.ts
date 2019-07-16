@@ -66,8 +66,10 @@ export class AutoMapper extends AutoMapperBase {
       return super._map(sourceObj, mapping);
     }
 
-    const mapping = super._getMappingForDestination(args[0] as Constructable<TDestination>);
-    return super._map(sourceObj, mapping as Mapping<TSource, TDestination>);
+    const mapping = super._getMappingForDestination<TSource, TDestination>(args[0] as Constructable<
+      TDestination
+    >);
+    return super._map(sourceObj, mapping);
   }
 
   public mapArray<TSource extends {} = any, TDestination extends {} = any>(
@@ -91,8 +93,10 @@ export class AutoMapper extends AutoMapperBase {
       return super._mapArray(sourceObj, mapping);
     }
 
-    const mapping = super._getMappingForDestination(args[0] as Constructable<TDestination>);
-    return super._mapArray(sourceObj, mapping as Mapping<TSource, TDestination>);
+    const mapping = super._getMappingForDestination<TSource, TDestination>(args[0] as Constructable<
+      TDestination
+    >);
+    return super._mapArray(sourceObj, mapping);
   }
 
   public createMap<TSource extends {} = any, TDestination extends {} = any>(
