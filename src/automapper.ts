@@ -17,6 +17,9 @@ export class AutoMapper extends AutoMapperBase {
 
   private readonly _profiles!: { [key: string]: any };
 
+  /**
+   * @static - Get the Mapper instance
+   */
   public static getInstance(): AutoMapper {
     return this._instance;
   }
@@ -31,6 +34,20 @@ export class AutoMapper extends AutoMapperBase {
     this._profiles = {};
   }
 
+  /**
+   * Initialize Mapper
+   *
+   * @example
+   *
+   * Mapper.initialize(config => {
+   *   config.addProfile(new Profile());
+   *   config.createMap(Source, Destination);
+   * })
+   *
+   * @name initialize
+   * @param {(config: Configuration) => void} configFn - Config function callback
+   *
+   */
   public initialize(configFn: (config: Configuration) => void): void {
     const configuration: Configuration = {
       addProfile: (profile: MappingProfile): void => {
@@ -48,10 +65,31 @@ export class AutoMapper extends AutoMapperBase {
     configFn(configuration);
   }
 
+  /**
+   * Map from Source to Destination
+   *
+   * @example
+   *
+   * const user = new User();
+   * user.firstName = 'John';
+   * user.lastName = 'Doe';
+   *
+   * const userVm = Mapper.map(user, UserVm);
+   *
+   * @param {TSource} sourceObj - the sourceObj that are going to be mapped
+   * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped values
+   */
   public map<TSource extends {} = any, TDestination extends {} = any>(
     sourceObj: TSource,
     destination: Constructable<TDestination>
   ): TDestination;
+  /**
+   * Map from Source to Destination
+   *
+   * @param {TSource} sourceObj - the sourceObj that are going to be mapped
+   * @param {Constructable<TSource>} source - the Source model
+   * @param {Constructable<TDestination>} destination - the Destination model
+   */
   public map<TSource extends {} = any, TDestination extends {} = any>(
     sourceObj: TSource,
     source: Constructable<TSource>,
@@ -72,10 +110,30 @@ export class AutoMapper extends AutoMapperBase {
     return super._map(sourceObj, mapping);
   }
 
+  /**
+   * Map from a list of Source to a list of Destination
+   *
+   * @example
+   *
+   * const addresses = [];
+   * addresses.push(new Address(), new Address());
+   *
+   * const addressesVm = Mapper.mapArray(addresses, AddressVm);
+   *
+   * @param {TSource} sourceObj - the sourceObj that are going to be mapped
+   * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped values
+   */
   public mapArray<TSource extends {} = any, TDestination extends {} = any>(
     sourceObj: TSource[],
     destination: Constructable<TDestination>
   ): TDestination[];
+  /**
+   * Map from a list of Source to a list of Destination
+   *
+   * @param {TSource} sourceObj - the sourceObj that are going to be mapped
+   * @param {Constructable<TSource>} source - the Source model
+   * @param {Constructable<TDestination>} destination - the Destination model
+   */
   public mapArray<TSource extends {} = any, TDestination extends {} = any>(
     sourceObj: TSource[],
     source: Constructable<TSource>,
@@ -99,6 +157,12 @@ export class AutoMapper extends AutoMapperBase {
     return super._mapArray(sourceObj, mapping);
   }
 
+  /**
+   * Create a mapping between Source and Destination without initializing the Mapper
+   *
+   * @param {Constructable<TSource>} source - the Source model
+   * @param {Constructable<TDestination>} destination - the Destination model
+   */
   public createMap<TSource extends {} = any, TDestination extends {} = any>(
     source: Constructable<TSource>,
     destination: Constructable<TDestination>
@@ -160,15 +224,34 @@ export class AutoMapper extends AutoMapperBase {
   }
 }
 
+/**
+ * Abstract class for all mapping Profiles
+ *
+ */
 export abstract class MappingProfileBase implements MappingProfile {
+  /**
+   * @property {string} profileName - the name of the Profile
+   */
   public profileName: string;
 
+  /**
+   * @constructor - initialize the profile with the profileName
+   */
   protected constructor() {
     this.profileName = this.constructor.name;
   }
 
+  /**
+   * @abstract configure() method to be called when using with Mapper.initialize()
+   */
   abstract configure(): void;
 
+  /**
+   * Profile's createMap. Call this.createMap in configure() to setup mapping between a Source and a Destination
+   *
+   * @param {Constructable<TSource>} source - the Source model
+   * @param {Constructable<TDestination>} destination - the Destination model
+   */
   protected createMap<TSource, TDestination>(
     source: Constructable<TSource>,
     destination: Constructable<TDestination>
@@ -177,6 +260,9 @@ export abstract class MappingProfileBase implements MappingProfile {
   }
 }
 
+/**
+ * @instance AutoMapper singleton
+ */
 export const Mapper = AutoMapper.getInstance();
 
 // // Import here Polyfills if needed. Recommended core-js (npm i -D core-js)

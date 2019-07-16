@@ -1,9 +1,17 @@
+/**
+ * Ignore - when opts.ignore() is used on forMember()
+ * MapFrom - when opts.mapFrom() is used on forMember()
+ * Condition - when opts.condition() is used on forMember()
+ */
 export enum TransformationType {
   Ignore = 0,
   MapFrom = 1,
   Condition = 2
 }
 
+/**
+ * A new-able type
+ */
 export type Constructable<T extends {} = any> = new (...args: any[]) => T;
 
 export type MapFromCallback<

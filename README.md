@@ -7,9 +7,6 @@ This is a fork of `automapper-ts` by [Bert Loedeman](https://github.com/loedeman
 Github Pages
 [https://nartc.github.io/automapper-nartc/](https://nartc.github.io/automapper-nartc/)
 
-Stackblitz Demo
-[Stackblitz](https://stackblitz.com/edit/typescript-automapper-nartc)
-
 ## Motivations
 
 I know that `AutoMapper` is pretty weak in `TypeScript` because of how `Reflection` works in `TypeScript`. However, it'd be nice to have some type of `Mapper` that works for `NodeJS` development.
@@ -41,18 +38,14 @@ npm install --save automapper-nartc
 
 ## Usage
 
-```typescript
-import { Mapper, MappingProfileBase } from 'automapper-nartc';
+1. Assuming you have couple of `Domain Models` as follows:
 
+```typescript
 class Address {
   address: string;
   city: string;
   state: string;
   zip: string;
-}
-
-class AddressVm {
-  constructor(public addressString: string) {}
 }
 
 class Profile {
@@ -66,15 +59,23 @@ class Profile {
   }
 }
 
-class ProfileVm {
-  constructor(public bio: string, public email: string, public addressStrings: AddressVm[]) {}
-}
-
 class User {
   firstName: string;
   lastName: string;
   password: string;
   profile: Profile;
+}
+```
+
+2. And you also have couple of `View Models` (or `DTOs`):
+
+```typescript
+class AddressVm {
+  constructor(public addressString: string) {}
+}
+
+class ProfileVm {
+  constructor(public bio: string, public email: string, public addressStrings: AddressVm[]) {}
 }
 
 class UserVm {
@@ -85,130 +86,74 @@ class UserVm {
     public lastName?: string
   ) {}
 }
+```
 
-class UserProfile extends MappingProfileBase {
-  constructor() {
-    super();
-  }
+> You have to use the short-hand version to declare your Class fields. This will make sure the Object will be instantiated with all fields available.
 
-  configure(): void {
-    this.createMap(User, UserVm).forMember('fullName', opts =>
-      opts.mapFrom(source => source.firstName + ' ' + source.lastName)
-    );
-  }
-}
+3. Next, import `Mapper` from `automapper-nartc`
+4. Initialize `Mapper` with `initialize()` method. `initialize()` expects a `Configuration` callback that will give you access to the `Configuration` object. There are two methods on the `Configuration` object that you can use to setup your `Mapper`
 
-class ProfileProfile extends MappingProfileBase {
-  constructor() {
-    super();
-  }
+- `createMap()`: `createMap()` expects a **source** as the first argument and the **destination** as the second argument. `createMap()` returns `CreateMapFluentFunctions<TSource, TDestination>` (Read more at [API Reference](https://nartc.github.io/automapper-nartc/index.html)).
 
-  configure(): void {
-    this.createMap(Profile, ProfileVm);
-  }
-}
-
-class AddressProfile extends MappingProfileBase {
-  constructor() {
-    super();
-  }
-
-  configure(): void {
-    this.createMap(Address, AddressVm).forMember('addressString', opts =>
-      opts.mapFrom(s => `${s.address}, ${s.city} ${s.state}, ${s.zip}`)
-    );
-  }
-}
+```typescript
+import { Mapper, MappingProfileBase } from 'automapper-nartc';
 
 Mapper.initialize(config => {
-  config.addProfile(new UserProfile());
-  config.addProfile(new ProfileProfile());
-  config.addProfile(new AddressProfile());
+  config.createMap(User, UserVm); // create a mapping from User to UserVm (one direction)
 });
+```
 
-const user = new User();
-user.firstName = 'Chau';
-user.lastName = 'Tran';
-user.password = '123456';
+`createMap()` will establish basic mappings for: `primitives` and `nested mapping` that have the same field name on the **source** and **destination** (eg: `userVm.firstName` will be automatically mapped from `user.firstName`). In addition, you can use `forMember()` to gain more control on how to map a field on the **destination**.
 
-const address1 = new Address();
-address1.address = '123 Some';
-address1.city = 'Acme';
-address1.state = 'AC';
-address1.zip = '12345';
+```typescript
+Mapper.initialize(config => {
+  config
+    .createMap(User, UserVm) // create a mapping from User to UserVm (one direction)
+    .forMember('fullName', opts =>
+      opts.mapFrom(source => source.firstName + ' ' + source.lastName)
+    ); // You will get type-inference here
+});
+```
 
-const address2 = new Address();
-address2.address = '123 Some';
-address2.city = 'Acme';
-address2.state = 'AC';
-address2.zip = '12345';
+- `addProfile()`: `addProfile()` expects a new instance of a class which extends `MappingProfileBase`. Usually, you can just initialize your `Mapper` with `config.createMap` and setup all your mappings that way. But more than often, it is better to separate your mappings into `Profile` which will create the mappings for specific set of **source** and **destination**
 
-user.profile = new Profile();
-user.profile.bio = 'Test bio';
-user.profile.email = 'Test email';
-user.profile.phone = 'test phone';
-user.profile.addresses.push(address1, address2);
+```typescript
+import { MappingProfileBase } from 'automapper-nartc';
 
-console.log(user);
-/**
- * 
-User {
-  firstName: 'Chau',
-  lastName: 'Tran',
-  password: '123456',
-  profile: Profile {
-    addresses: [ [Address], [Address] ],
-    bio: 'Test bio',
-    email: 'Test email',
-    phone: 'test phone'
+export class UserProfile extends MappingProfileBase {
+  constructor() {
+    super(); // this is required since it will take UserProfile and get the string "UserProfile" to assign to profileName
+  }
+
+  // configure() is required since it is an abstract method. configure() will be called automatically by Mapper.
+  // This is where you will setup your mapping with the class method: createMap
+  configure() {
+    this.createMap(User, UserVm).forMember('fullName', opts =>
+      opts.mapFrom(source => source.firstName + ' ' + source.lastName)
+    ); // You will get type-inference here
   }
 }
- */
 
-const userVm = Mapper.map(User, UserVm, user);
-console.log(userVm);
-/**
-UserVm {
-  fullName: 'Chau Tran',
-  profile: ProfileVm {
-    bio: 'Test bio',
-    email: 'Test email',
-    addressStrings: undefined
-  },
-  firstName: 'Chau',
-  lastName: 'Tran'
-}
- */
+// in another file
+Mapper.initialize(config => {
+  config.addProfile(new UserProfile());
+});
+```
 
-userVm.profile.addressStrings = Mapper.mapArray(Address, AddressVm, user.profile.addresses);
+5. When you're ready to map, call `Mapper.map()`. `map()` has two overloads:
 
-console.log(userVm);
-/**
-UserVm {
-  fullName: 'Chau Tran',
-  profile: ProfileVm {
-    bio: 'Test bio',
-    email: 'Test email',
-    addressStrings: [ [AddressVm], [AddressVm] ]
-  },
-  firstName: 'Chau',
-  lastName: 'Tran'
-}
- */
+- `map(sourceObj, destination)`
+- `map(sourceObj, source, destination)`
 
-console.log(userVm.profile);
-/**
-ProfileVm {
-  bio: 'Test bio',
-  email: 'Test email',
-  addressStrings: [
-    AddressVm { addressString: '123 Some, Acme AC, 12345' },
-    AddressVm { addressString: '123 Some, Acme AC, 12345' }
-  ]
-}
- */
+```typescript
+const userVm = Mapper.map(user, UserVm); // this will return an instance of UserVm and assign it to userVm with all the fields assigned properly from User
 
 console.log('instance of UserVm?', userVm instanceof UserVm); // true
-console.log('instance of ProfileVm?', userVm.profile instanceof ProfileVm); // true
-console.log('instance of AddressVm?', userVm.profile.addressStrings[0] instanceof AddressVm); // true
 ```
+
+6. Use `Mapper.mapArray()` if you want to map from `TSource[]` to `TDestination[]`. `mapArray()` has the same overloads as `map()`
+
+## Demo
+
+Stackblitz Demo
+[Stackblitz](https://stackblitz.com/edit/typescript-automapper-nartc)
