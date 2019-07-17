@@ -9,9 +9,10 @@ export abstract class AutoMapperBase {
     this._mappings = {};
   }
 
-  protected getTransformationType<TSource extends {} = any, TDestination extends {} = any>(
-    forMemberFn: ForMemberFunction<TSource, TDestination>
-  ): TransformationType {
+  protected getTransformationType<
+    TSource extends { [key in keyof TSource]: any } = any,
+    TDestination extends {} = any
+  >(forMemberFn: ForMemberFunction<TSource, TDestination>): TransformationType {
     const fnString = forMemberFn.toString();
     if (fnString.includes('ignore')) {
       return TransformationType.Ignore;
@@ -24,41 +25,43 @@ export abstract class AutoMapperBase {
     return TransformationType.MapFrom;
   }
 
-  protected _mapArray<TSource extends {} = any, TDestination extends {} = any>(
-    sourceArray: TSource[],
-    mapping: Mapping<TSource, TDestination>
-  ): TDestination[] {
+  protected _mapArray<
+    TSource extends { [key in keyof TSource]: any } = any,
+    TDestination extends { [key in keyof TDestination]: any } = any
+  >(sourceArray: TSource[], mapping: Mapping<TSource, TDestination>): TDestination[] {
     return sourceArray.map(s => this._map(s, mapping));
   }
 
-  protected _map<TSource extends {} = any, TDestination extends {} = any>(
-    sourceObj: TSource,
-    mapping: Mapping<TSource, TDestination>
-  ): TDestination {
+  protected _map<
+    TSource extends { [key in keyof TSource]: any } = any,
+    TDestination extends { [key in keyof TDestination]: any } = any
+  >(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): TDestination {
     const { destination, properties } = mapping;
     const destinationObj = new destination();
     const configProps = [...properties.keys()];
-    const sourceKeys = Object.keys(sourceObj);
-    const len = sourceKeys.length;
 
-    for (let i = 0; i < len; i++) {
-      const sourceVal = (sourceObj as any)[sourceKeys[i]];
-      if (
-        configProps.includes(sourceKeys[i] as keyof TDestination) ||
-        !destinationObj.hasOwnProperty(sourceKeys[i])
-      ) {
+    const destinationKeys = Object.keys(destinationObj);
+    const destinationKeysLen = destinationKeys.length;
+
+    for (let i = 0; i < destinationKeysLen; i++) {
+      const key = destinationKeys[i] as keyof TDestination;
+      if (configProps.includes(key) || !sourceObj.hasOwnProperty(key)) {
         continue;
       }
 
+      const sourceVal: TSource[keyof TSource] = sourceObj[key];
       if (typeof sourceVal === 'object') {
         if (this._isDate(sourceVal)) {
-          (destinationObj as any)[sourceKeys[i]] = new Date(sourceVal);
+          destinationObj[key] = new Date(sourceVal) as TDestination[keyof TDestination];
           continue;
         }
 
         if (this._isArray(sourceVal)) {
-          const nestedMapping = this._getMappingForNestedKey(sourceVal[0]);
-          (destinationObj as any)[sourceKeys[i]] = this._mapArray(sourceVal, nestedMapping as any);
+          const nestedMapping = this._getMappingForNestedKey<
+            TSource[keyof TSource],
+            TDestination[keyof TDestination]
+          >(sourceVal[0]);
+          destinationObj[key] = this._mapArray(sourceVal, nestedMapping) as any;
           continue;
         }
       }
@@ -67,13 +70,50 @@ export abstract class AutoMapperBase {
         (typeof sourceVal === 'object' || typeof sourceVal === 'function') &&
         this._isClass(sourceVal)
       ) {
-        const nestedMapping = this._getMappingForNestedKey(sourceVal);
-        (destinationObj as any)[sourceKeys[i]] = this._map(sourceVal, nestedMapping as any);
+        const nestedMapping = this._getMappingForNestedKey<
+          TSource[keyof TSource],
+          TDestination[keyof TDestination]
+        >(sourceVal);
+        destinationObj[key] = this._map(sourceVal, nestedMapping);
         continue;
       }
 
-      (destinationObj as any)[sourceKeys[i]] = sourceVal;
+      destinationObj[key] = sourceVal;
     }
+
+    // for (let i = 0; i < len; i++) {
+    //   const sourceVal = (sourceObj as any)[sourceKeys[i]];
+    //   if (
+    //     configProps.includes(sourceKeys[i] as keyof TDestination) ||
+    //     !destinationObj.hasOwnProperty(sourceKeys[i])
+    //   ) {
+    //     continue;
+    //   }
+    //
+    //   if (typeof sourceVal === 'object') {
+    //     if (this._isDate(sourceVal)) {
+    //       (destinationObj as any)[sourceKeys[i]] = new Date(sourceVal);
+    //       continue;
+    //     }
+    //
+    //     if (this._isArray(sourceVal)) {
+    //       const nestedMapping = this._getMappingForNestedKey(sourceVal[0]);
+    //       (destinationObj as any)[sourceKeys[i]] = this._mapArray(sourceVal, nestedMapping as any);
+    //       continue;
+    //     }
+    //   }
+    //
+    //   if (
+    //     (typeof sourceVal === 'object' || typeof sourceVal === 'function') &&
+    //     this._isClass(sourceVal)
+    //   ) {
+    //     const nestedMapping = this._getMappingForNestedKey(sourceVal);
+    //     (destinationObj as any)[sourceKeys[i]] = this._map(sourceVal, nestedMapping as any);
+    //     continue;
+    //   }
+    //
+    //   (destinationObj as any)[sourceKeys[i]] = sourceVal;
+    // }
 
     for (let prop of properties.values()) {
       if (prop.transformation.transformationType === TransformationType.Ignore) {
@@ -94,7 +134,10 @@ export abstract class AutoMapperBase {
     return destinationObj;
   }
 
-  protected _createMappingObject<TSource extends {} = any, TDestination extends {} = any>(
+  protected _createMappingObject<
+    TSource extends { [key in keyof TSource]: any } = any,
+    TDestination extends { [key in keyof TDestination]: any } = any
+  >(
     source: Constructable<TSource>,
     destination: Constructable<TDestination>
   ): Mapping<TSource, TDestination> {
