@@ -50,10 +50,17 @@ export abstract class AutoMapperBase {
         continue;
       }
 
-      if (typeof sourceVal === 'object' && Array.isArray(sourceVal)) {
-        const nestedMapping = this._getMappingForNestedKey(sourceVal[0]);
-        (destinationObj as any)[sourceKeys[i]] = this._mapArray(sourceVal, nestedMapping as any);
-        continue;
+      if (typeof sourceVal === 'object') {
+        if (this._isDate(sourceVal)) {
+          (destinationObj as any)[sourceKeys[i]] = new Date(sourceVal);
+          continue;
+        }
+
+        if (this._isArray(sourceVal)) {
+          const nestedMapping = this._getMappingForNestedKey(sourceVal[0]);
+          (destinationObj as any)[sourceKeys[i]] = this._mapArray(sourceVal, nestedMapping as any);
+          continue;
+        }
       }
 
       if (
@@ -170,6 +177,14 @@ export abstract class AutoMapperBase {
         /^\s*class/.test(fn.constructor.toString())) &&
       fn.constructor.toString().includes(fn.constructor.name)
     );
+  }
+
+  private _isDate<TSource>(fn: Constructable<TSource>): boolean {
+    return fn && Object.prototype.toString.call(fn) === '[object Date]' && !isNaN(fn as any);
+  }
+
+  private _isArray<TSource>(fn: Constructable<TSource>): boolean {
+    return Array.isArray(fn) && Object.prototype.toString.call(fn) === '[object Array]';
   }
 
   private _getMappingForNestedKey<TSource, TDestination>(
