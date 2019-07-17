@@ -23,10 +23,18 @@ So far, the following is supported:
 
 > Please be advised that the current state of this library is for learning purposes and I'd appreciate any help/guides. Everything is still in beta and DO NOT USE in production.
 
-#### Features that I am working on:
+#### Future features:
 
+- [ ] Flattening
 - [ ] ReverseMap
-- [ ] I don't know, I'll need to research `AutoMapper` more
+- [ ] Type Converters
+- [ ] Value Resolvers
+- [ ] Value Converters ?
+- [ ] Value Transformers ?
+- [ ] Null Substitution
+- [ ] Naming Conventions
+
+Contributions are appreciated.
 
 ## Installation
 
