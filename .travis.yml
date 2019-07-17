@@ -13,8 +13,6 @@ script:
 
 jobs:
   include:
-    - stage: report_coverage
-      script: npm run report-coverage
     - stage: deploy_docs
       script: if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then npm run deploy-docs; fi
     - stage: npm_release
