@@ -353,6 +353,7 @@ declare module 'automapper-nartc/types' {
 declare module 'automapper-nartc/utils' {
   export const toWords: (str: string, pattern?: string | RegExp | undefined) => RegExpMatchArray;
   export const toLowerCase: <TDestination>(str: keyof TDestination) => string;
+  export const toLowerCases: <TDestination>(str: keyof TDestination) => string[];
   export const tryGet: (object: any, path: string, defaultValue?: any) => any;
 
 }

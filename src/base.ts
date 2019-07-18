@@ -1,5 +1,5 @@
 import { Constructable, ForMemberFunction, Mapping, TransformationType } from './types';
-import { toLowerCase, tryGet } from './utils';
+import { toLowerCase, toLowerCases, tryGet } from './utils';
 
 export abstract class AutoMapperBase {
   protected _mappingNames: { [key: string]: Constructable };
@@ -51,12 +51,12 @@ export abstract class AutoMapperBase {
       }
 
       if (!sourceObj.hasOwnProperty(key)) {
-        const keys = toLowerCase(key);
-        if (keys.split(' ').length === 1 || !sourceObj.hasOwnProperty(keys[0])) {
+        const keys = toLowerCases(key);
+        if (keys.length === 1 || !sourceObj.hasOwnProperty(keys[0])) {
           continue;
         }
 
-        destinationObj[key] = tryGet(sourceObj, keys.split(' ').join('.'));
+        destinationObj[key] = tryGet(sourceObj, keys.join('.'));
         continue;
       }
 
