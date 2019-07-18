@@ -1,4 +1,5 @@
 import { Constructable, ForMemberFunction, Mapping, TransformationType } from './types';
+import { toLowerCase, tryGet } from './utils';
 
 export abstract class AutoMapperBase {
   protected _mappingNames: { [key: string]: Constructable };
@@ -45,7 +46,17 @@ export abstract class AutoMapperBase {
 
     for (let i = 0; i < destinationKeysLen; i++) {
       const key = destinationKeys[i] as keyof TDestination;
-      if (configProps.includes(key) || !sourceObj.hasOwnProperty(key)) {
+      if (configProps.includes(key)) {
+        continue;
+      }
+
+      if (!sourceObj.hasOwnProperty(key)) {
+        const keys = toLowerCase(key);
+        if (keys.split(' ').length === 1 || !sourceObj.hasOwnProperty(keys[0])) {
+          continue;
+        }
+
+        destinationObj[key] = tryGet(sourceObj, keys.split(' ').join('.'));
         continue;
       }
 
@@ -80,40 +91,6 @@ export abstract class AutoMapperBase {
 
       destinationObj[key] = sourceVal;
     }
-
-    // for (let i = 0; i < len; i++) {
-    //   const sourceVal = (sourceObj as any)[sourceKeys[i]];
-    //   if (
-    //     configProps.includes(sourceKeys[i] as keyof TDestination) ||
-    //     !destinationObj.hasOwnProperty(sourceKeys[i])
-    //   ) {
-    //     continue;
-    //   }
-    //
-    //   if (typeof sourceVal === 'object') {
-    //     if (this._isDate(sourceVal)) {
-    //       (destinationObj as any)[sourceKeys[i]] = new Date(sourceVal);
-    //       continue;
-    //     }
-    //
-    //     if (this._isArray(sourceVal)) {
-    //       const nestedMapping = this._getMappingForNestedKey(sourceVal[0]);
-    //       (destinationObj as any)[sourceKeys[i]] = this._mapArray(sourceVal, nestedMapping as any);
-    //       continue;
-    //     }
-    //   }
-    //
-    //   if (
-    //     (typeof sourceVal === 'object' || typeof sourceVal === 'function') &&
-    //     this._isClass(sourceVal)
-    //   ) {
-    //     const nestedMapping = this._getMappingForNestedKey(sourceVal);
-    //     (destinationObj as any)[sourceKeys[i]] = this._map(sourceVal, nestedMapping as any);
-    //     continue;
-    //   }
-    //
-    //   (destinationObj as any)[sourceKeys[i]] = sourceVal;
-    // }
 
     for (let prop of properties.values()) {
       if (prop.transformation.transformationType === TransformationType.Ignore) {
