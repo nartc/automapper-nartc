@@ -237,7 +237,7 @@ declare module 'automapper-nartc/internal' {
   }
   interface MemoizedFn {
       (fn: (...args: any[]) => any, resolve: (...args: any[]) => any): InternalMemoizedFn;
-      Cache: MapConstructor | WeakMapConstructor | any;
+      Cache?: MapConstructor | WeakMapConstructor | any;
   }
   export const memoize: MemoizedFn;
   export const memoizedCapped: (fn: (...args: any[]) => any) => InternalMemoizedFn;
