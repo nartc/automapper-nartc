@@ -56,7 +56,11 @@ export abstract class AutoMapperBase {
           continue;
         }
 
-        destinationObj[key] = tryGet(sourceObj, keys.join('.'));
+        const flatten = tryGet(sourceObj, keys.join('.'));
+        if (typeof flatten === 'object') {
+          continue;
+        }
+        destinationObj[key] = flatten;
         continue;
       }
 
