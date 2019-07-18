@@ -20,12 +20,12 @@ So far, the following is supported:
 - [x] Basic Mapping between two classes
 - [x] Basic Mapping for nested classes
 - [x] Array/List Mapping
+- [x] Flattening
 
 > Please be advised that the current state of this library is for learning purposes and I'd appreciate any help/guides. Everything is still in beta and DO NOT USE in production.
 
 #### Future features:
 
-- [ ] Flattening
 - [ ] ReverseMap
 - [ ] Type Converters
 - [ ] Value Resolvers
