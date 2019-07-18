@@ -4,6 +4,7 @@ import {
   Configuration,
   Constructable,
   CreateMapFluentFunctions,
+  CreateReverseMapFluentFunctions,
   DestinationMemberConfigOptions,
   ForMemberFunction,
   MapFromCallback,
@@ -185,6 +186,9 @@ export class AutoMapper extends AutoMapperBase {
     const fluentFunctions: CreateMapFluentFunctions<TSource, TDestination> = {
       forMember: (destinationKey, forMemberFn) => {
         return this._createMapForMember(mapping, destinationKey, forMemberFn, fluentFunctions);
+      },
+      reverseMap: () => {
+        return this._createReverseMap(mapping);
       }
     };
 
@@ -200,6 +204,7 @@ export class AutoMapper extends AutoMapperBase {
     const transformationType = super.getTransformationType(fn);
     let mapFrom: MapFromCallback<TSource, TDestination>;
     let condition: ConditionPredicate<TSource>;
+    let fromValue: TDestination[keyof TDestination];
 
     const opts: DestinationMemberConfigOptions<TSource, TDestination> = {
       mapFrom: cb => {
@@ -210,6 +215,9 @@ export class AutoMapper extends AutoMapperBase {
       },
       ignore(): void {
         // do nothing
+      },
+      fromValue: value => {
+        fromValue = value;
       }
     };
 
@@ -222,12 +230,80 @@ export class AutoMapper extends AutoMapperBase {
         // @ts-ignore
         mapFrom,
         // @ts-ignore
-        condition
+        condition,
+        // @ts-ignore
+        fromValue
       }
     };
 
     mapping.properties.set(key, mappingProperty);
 
+    return fluentFunctions;
+  }
+
+  private _createReverseMap<TSource extends {} = any, TDestination extends {} = any>(
+    mapping: Mapping<TSource, TDestination>
+  ): CreateReverseMapFluentFunctions<TDestination, TSource> {
+    const reverseMapping = super._createReverseMappingObject(mapping);
+
+    const reverseMapFluentFunctions: CreateReverseMapFluentFunctions<TDestination, TSource> = {
+      forPath: (destination, forPathFn) => {
+        const destinationKey = super._getKeyFromMemberFn(destination);
+        return this._createMapForPath<TDestination, TSource>(
+          reverseMapping,
+          destinationKey,
+          forPathFn,
+          reverseMapFluentFunctions
+        );
+      }
+    };
+
+    return reverseMapFluentFunctions;
+  }
+
+  private _createMapForPath<TDestination extends {} = any, TSource extends {} = any>(
+    mapping: Mapping<TDestination, TSource>,
+    key: keyof TSource,
+    fn: ForMemberFunction<TDestination, TSource>,
+    fluentFunctions: CreateReverseMapFluentFunctions<TDestination, TSource>
+  ): CreateReverseMapFluentFunctions<TDestination, TSource> {
+    const transformationType = super.getTransformationType(fn);
+
+    let mapFrom: MapFromCallback<TDestination, TSource>;
+    let condition: ConditionPredicate<TDestination>;
+    let fromValue: TSource[keyof TSource];
+
+    const opts: DestinationMemberConfigOptions<TDestination, TSource> = {
+      mapFrom: cb => {
+        mapFrom = cb;
+      },
+      condition: predicate => {
+        condition = predicate;
+      },
+      ignore(): void {
+        // do nothing
+      },
+      fromValue: value => {
+        fromValue = value;
+      }
+    };
+
+    fn(opts);
+
+    const mappingProperty: MappingProperty<TDestination, TSource> = {
+      destinationKey: key,
+      transformation: {
+        transformationType,
+        // @ts-ignore
+        mapFrom,
+        // @ts-ignore
+        condition,
+        // @ts-ignore
+        fromValue
+      }
+    };
+
+    mapping.properties.set(key, mappingProperty);
     return fluentFunctions;
   }
 }

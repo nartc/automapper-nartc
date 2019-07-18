@@ -10,7 +10,11 @@ export enum TransformationType {
   /**
    * when `opts.condition()` is used on `forMember()`
    */
-  Condition = 2
+  Condition = 2,
+  /**
+   * when `opts.fromValue()` is used on `forMember()`
+   */
+  FromValue = 3
 }
 
 /**
@@ -42,6 +46,8 @@ export interface DestinationMemberConfigOptions<
   mapFrom(cb: MapFromCallback<TSource, TDestination, K>): void;
 
   condition(predicate: ConditionPredicate<TSource>): void;
+
+  fromValue(value: TDestination[K]): void;
 }
 
 export interface ForMemberFunction<
@@ -52,6 +58,20 @@ export interface ForMemberFunction<
   (opts: DestinationMemberConfigOptions<TSource, TDestination, K>): void;
 }
 
+export type ForPathDestinationFn<
+  TDestination extends { [key in keyof TDestination]: any } = any
+> = (destination: TDestination) => TDestination[keyof TDestination];
+
+export interface CreateReverseMapFluentFunctions<
+  TDestination extends { [key in keyof TDestination]: any } = any,
+  TSource extends { [key in keyof TSource]: any } = any
+> {
+  forPath<K extends keyof TSource>(
+    destination: ForPathDestinationFn<TSource>,
+    forPathFn: ForMemberFunction<TDestination, TSource, K>
+  ): CreateReverseMapFluentFunctions<TDestination, TSource>;
+}
+
 export interface CreateMapFluentFunctions<
   TSource extends { [key in keyof TSource]: any } = any,
   TDestination extends { [key in keyof TDestination]: any } = any
@@ -60,6 +80,8 @@ export interface CreateMapFluentFunctions<
     destinationKey: K,
     forMemberFn: ForMemberFunction<TSource, TDestination, K>
   ): CreateMapFluentFunctions<TSource, TDestination>;
+
+  reverseMap(): CreateReverseMapFluentFunctions<TDestination, TSource>;
 }
 
 export interface Configuration {
@@ -78,6 +100,7 @@ export interface MappingTransformation<
   transformationType: TransformationType;
   mapFrom: (source: TSource) => ReturnType<MapFromCallback<TSource, TDestination>>;
   condition: ConditionPredicate<TSource>;
+  fromValue: TDestination[keyof TDestination];
 }
 
 export interface MappingProperty<

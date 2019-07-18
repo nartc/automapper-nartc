@@ -86,6 +86,8 @@ declare module 'automapper-nartc/automapper' {
       createMap<TSource extends {} = any, TDestination extends {} = any>(source: Constructable<TSource>, destination: Constructable<TDestination>): CreateMapFluentFunctions<TSource, TDestination>;
       private _createMappingFluentFunctions;
       private _createMapForMember;
+      private _createReverseMap;
+      private _createMapForPath;
   }
   /**
    * Abstract class for all mapping Profiles
@@ -119,11 +121,8 @@ declare module 'automapper-nartc/automapper' {
 
 }
 declare module 'automapper-nartc/base' {
-  import { Constructable, ForMemberFunction, Mapping, TransformationType } from 'automapper-nartc/types';
+  import { Constructable, ForMemberFunction, ForPathDestinationFn, Mapping, TransformationType } from 'automapper-nartc/types';
   export abstract class AutoMapperBase {
-      protected _mappingNames: {
-          [key: string]: Constructable;
-      };
       protected readonly _mappings: {
           [key: string]: Mapping;
       };
@@ -146,6 +145,14 @@ declare module 'automapper-nartc/base' {
       } = any, TDestination extends {
           [key in keyof TDestination]: any;
       } = any>(source: Constructable<TSource>, destination: Constructable<TDestination>): Mapping<TSource, TDestination>;
+      protected _createReverseMappingObject<TSource extends {
+          [key in keyof TSource]: any;
+      } = any, TDestination extends {
+          [key in keyof TDestination]: any;
+      } = any>(mapping: Mapping<TSource, TDestination>): Mapping<TDestination, TSource>;
+      protected _getKeyFromMemberFn<T extends {
+          [key in keyof T]: any;
+      } = any>(fn: ForPathDestinationFn<T>): keyof T;
       protected _getMapping<TSource, TDestination>(source: Constructable<TSource>, destination: Constructable<TDestination>): Mapping<TSource, TDestination>;
       protected _getMappingForDestination<TSource, TDestination>(destination: Constructable<TDestination>): Mapping<TSource, TDestination>;
       private _hasMapping;
@@ -157,63 +164,6 @@ declare module 'automapper-nartc/base' {
   }
 
 }
-declare module 'automapper-nartc/constants' {
-  /** Used to compose unicode character classes. */
-  export const rsAstralRange = "\\ud800-\\udfff";
-  export const rsComboMarksRange = "\\u0300-\\u036f";
-  export const reComboHalfMarksRange = "\\ufe20-\\ufe2f";
-  export const rsComboSymbolsRange = "\\u20d0-\\u20ff";
-  export const rsComboMarksExtendedRange = "\\u1ab0-\\u1aff";
-  export const rsComboMarksSupplementRange = "\\u1dc0-\\u1dff";
-  export const rsComboRange: string;
-  export const rsDingbatRange = "\\u2700-\\u27bf";
-  export const rsLowerRange = "a-z\\xdf-\\xf6\\xf8-\\xff";
-  export const rsMathOpRange = "\\xac\\xb1\\xd7\\xf7";
-  export const rsNonCharRange = "\\x00-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\xbf";
-  export const rsPunctuationRange = "\\u2000-\\u206f";
-  export const rsSpaceRange = " \\t\\x0b\\f\\xa0\\ufeff\\n\\r\\u2028\\u2029\\u1680\\u180e\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u202f\\u205f\\u3000";
-  export const rsUpperRange = "A-Z\\xc0-\\xd6\\xd8-\\xde";
-  export const rsVarRange = "\\ufe0e\\ufe0f";
-  export const rsBreakRange: string;
-  /** Used to compose unicode capture groups. */
-  export const rsApos = "['\u2019]";
-  export const rsBreak: string;
-  export const rsCombo: string;
-  export const rsDigit = "\\d";
-  export const rsDingbat: string;
-  export const rsLower: string;
-  export const rsMisc: string;
-  export const rsFitz = "\\ud83c[\\udffb-\\udfff]";
-  export const rsModifier: string;
-  export const rsNonAstral: string;
-  export const rsRegional = "(?:\\ud83c[\\udde6-\\uddff]){2}";
-  export const rsSurrPair = "[\\ud800-\\udbff][\\udc00-\\udfff]";
-  export const rsUpper: string;
-  export const rsZWJ = "\\u200d";
-  /** Used to compose unicode regexes. */
-  export const rsMiscLower: string;
-  export const rsMiscUpper: string;
-  export const rsOptContrLower: string;
-  export const rsOptContrUpper: string;
-  export const reOptMod: string;
-  export const rsOptVar: string;
-  export const rsOptJoin: string;
-  export const rsOrdLower = "\\d*(?:1st|2nd|3rd|(?![123])\\dth)(?=\\b|[A-Z_])";
-  export const rsOrdUpper = "\\d*(?:1ST|2ND|3RD|(?![123])\\dTH)(?=\\b|[a-z_])";
-  export const rsSeq: string;
-  export const rsEmoji: string;
-  export const reQuotes: RegExp;
-  export const reIsDeepProp: RegExp;
-  export const reIsPlainProp: RegExp;
-  /** Used as the maximum memoize cache size. */
-  export const MAX_MEMOIZE_SIZE = 500;
-  export const charCodeOfDot: number;
-  export const reEscapeChar: RegExp;
-  export const rePropName: RegExp;
-  /** Used as references for various `Number` constants. */
-  export const INFINITY: number;
-
-}
 declare module 'automapper-nartc/helpers' {
 
 }
@@ -221,31 +171,6 @@ declare module 'automapper-nartc/index' {
   export * from 'automapper-nartc/base';
   export * from 'automapper-nartc/types';
   export * from 'automapper-nartc/automapper';
-
-}
-declare module 'automapper-nartc/internal' {
-  export const unicodeWords: (string: string) => RegExpExecArray | null;
-  export const asciiWords: (string: string) => RegExpExecArray | null;
-  export const hasUnicodeWord: (string: string) => boolean;
-  export const toString: () => string;
-  export const getTag: (value: any) => string;
-  export const isSymbol: (value: any) => boolean;
-  export const isKey: (value: any, object: any) => boolean;
-  interface InternalMemoizedFn {
-      (...args: any[]): any;
-      cache?: Map<any, any> | WeakMap<any, any> | any;
-  }
-  interface MemoizedFn {
-      (fn: (...args: any[]) => any, resolve: (...args: any[]) => any): InternalMemoizedFn;
-      Cache?: MapConstructor | WeakMapConstructor | any;
-  }
-  export const memoize: MemoizedFn;
-  export const memoizedCapped: (fn: (...args: any[]) => any) => InternalMemoizedFn;
-  export const stringToPath: InternalMemoizedFn;
-  export const castPath: (value: any, object: any) => any;
-  export const toKey: (value: any) => any;
-  export const baseGet: (object: any, path: string) => any;
-  export {};
 
 }
 declare module 'automapper-nartc/naming/camel-case-naming-convention' {
@@ -267,7 +192,11 @@ declare module 'automapper-nartc/types' {
       /**
        * when `opts.condition()` is used on `forMember()`
        */
-      Condition = 2
+      Condition = 2,
+      /**
+       * when `opts.fromValue()` is used on `forMember()`
+       */
+      FromValue = 3
   }
   /**
    * A new-able type
@@ -297,6 +226,7 @@ declare module 'automapper-nartc/types' {
   } = any, K extends keyof TDestination = never> extends SourceMemberConfigOptions<TSource, TDestination> {
       mapFrom(cb: MapFromCallback<TSource, TDestination, K>): void;
       condition(predicate: ConditionPredicate<TSource>): void;
+      fromValue(value: TDestination[K]): void;
   }
   export interface ForMemberFunction<TSource extends {
       [key in keyof TSource]: any;
@@ -305,12 +235,23 @@ declare module 'automapper-nartc/types' {
   } = any, K extends keyof TDestination = never> {
       (opts: DestinationMemberConfigOptions<TSource, TDestination, K>): void;
   }
+  export type ForPathDestinationFn<TDestination extends {
+      [key in keyof TDestination]: any;
+  } = any> = (destination: TDestination) => TDestination[keyof TDestination];
+  export interface CreateReverseMapFluentFunctions<TDestination extends {
+      [key in keyof TDestination]: any;
+  } = any, TSource extends {
+      [key in keyof TSource]: any;
+  } = any> {
+      forPath<K extends keyof TSource>(destination: ForPathDestinationFn<TSource>, forPathFn: ForMemberFunction<TDestination, TSource, K>): CreateReverseMapFluentFunctions<TDestination, TSource>;
+  }
   export interface CreateMapFluentFunctions<TSource extends {
       [key in keyof TSource]: any;
   } = any, TDestination extends {
       [key in keyof TDestination]: any;
   } = any> {
       forMember<K extends keyof TDestination>(destinationKey: K, forMemberFn: ForMemberFunction<TSource, TDestination, K>): CreateMapFluentFunctions<TSource, TDestination>;
+      reverseMap(): CreateReverseMapFluentFunctions<TDestination, TSource>;
   }
   export interface Configuration {
       addProfile(profile: MappingProfile): void;
@@ -324,6 +265,7 @@ declare module 'automapper-nartc/types' {
       transformationType: TransformationType;
       mapFrom: (source: TSource) => ReturnType<MapFromCallback<TSource, TDestination>>;
       condition: ConditionPredicate<TSource>;
+      fromValue: TDestination[keyof TDestination];
   }
   export interface MappingProperty<TSource extends {
       [key in keyof TSource]: any;
@@ -348,13 +290,6 @@ declare module 'automapper-nartc/types' {
       profileName: string;
       configure: () => void;
   }
-
-}
-declare module 'automapper-nartc/utils' {
-  export const toWords: (str: string, pattern?: string | RegExp | undefined) => RegExpMatchArray;
-  export const toLowerCase: <TDestination>(str: keyof TDestination) => string;
-  export const toLowerCases: <TDestination>(str: keyof TDestination) => string[];
-  export const tryGet: (object: any, path: string, defaultValue?: any) => any;
 
 }
 declare module 'automapper-nartc' {
