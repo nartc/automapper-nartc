@@ -1,3 +1,4 @@
+import { plainToClass } from 'class-transformer';
 import { entries, get, lowerCase } from 'lodash';
 import {
   Constructable,
@@ -46,8 +47,9 @@ export abstract class AutoMapperBase {
     TSource extends { [key in keyof TSource]: any } = any,
     TDestination extends { [key in keyof TDestination]: any } = any
   >(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): TDestination {
+    sourceObj = plainToClass(mapping.source, sourceObj);
     const { destination, properties } = mapping;
-    const destinationObj = new destination();
+    const destinationObj = plainToClass(destination, new destination());
     const configProps = [...properties.keys()];
 
     const destinationKeys = Object.keys(destinationObj);
@@ -208,6 +210,7 @@ export abstract class AutoMapperBase {
     return reverseMapping;
   }
 
+  // TODO: This is not right.
   protected _getKeyFromMemberFn<T extends { [key in keyof T]: any } = any>(
     fn: ForPathDestinationFn<T>
   ): keyof T {
