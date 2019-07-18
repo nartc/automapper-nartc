@@ -10,7 +10,7 @@ export const toWords = (str: string, pattern?: string | RegExp) => {
 };
 
 export const toLowerCase = <TDestination>(str: keyof TDestination) =>
-  toWords(`${str}`.replace(reQuotes, '')).reduce((res, word, index) => {
+  toWords(`${str}`.replace(reQuotes, '')).reduce((res: string, word, index) => {
     return res + (index ? ' ' : '') + word.toLowerCase();
   }, '');
 

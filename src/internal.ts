@@ -84,10 +84,12 @@ interface InternalMemoizedFn {
 interface MemoizedFn {
   (fn: (...args: any[]) => any, resolve: (...args: any[]) => any): InternalMemoizedFn;
 
-  Cache: MapConstructor | WeakMapConstructor | any;
+  Cache?: MapConstructor | WeakMapConstructor | any;
 }
 
 const _memoize: MemoizedFn = (fn: (...args: any[]) => any, resolver: (...args: any[]) => any) => {
+  _memoize.Cache = Map;
+
   if (typeof fn !== 'function' || (resolver != null && typeof resolver !== 'function')) {
     throw new TypeError('Expected a function');
   }
@@ -111,8 +113,6 @@ const _memoize: MemoizedFn = (fn: (...args: any[]) => any, resolver: (...args: a
   return memoized;
 };
 
-_memoize.Cache = Map;
-
 export const memoize = _memoize;
 
 export const memoizedCapped = (fn: (...args: any[]) => any) => {
@@ -129,7 +129,7 @@ export const memoizedCapped = (fn: (...args: any[]) => any) => {
 };
 
 export const stringToPath = memoizedCapped((str: string) => {
-  const result = [];
+  const result: string[] = [];
   if (str.charCodeAt(0) === charCodeOfDot) {
     result.push('');
   }
