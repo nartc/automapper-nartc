@@ -5,7 +5,6 @@ import {
   ForMemberFunction,
   ForPathDestinationFn,
   Mapping,
-  MappingProperty,
   TransformationType
 } from './types';
 
@@ -47,9 +46,9 @@ export abstract class AutoMapperBase {
     TSource extends { [key in keyof TSource]: any } = any,
     TDestination extends { [key in keyof TDestination]: any } = any
   >(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): TDestination {
-    sourceObj = plainToClass(mapping.source, sourceObj);
+    sourceObj = plainToClass(mapping.source, sourceObj, { strategy: 'exposeAll' });
     const { destination, properties } = mapping;
-    const destinationObj = plainToClass(destination, new destination());
+    const destinationObj = plainToClass(destination, new destination(), { strategy: 'exposeAll' });
     const configProps = [...properties.keys()];
 
     const destinationKeys = Object.keys(destinationObj);
@@ -120,6 +119,11 @@ export abstract class AutoMapperBase {
         if (condition) {
           destinationObj[prop.destinationKey] = (sourceObj as any)[prop.destinationKey];
         }
+        continue;
+      }
+
+      if (prop.transformation.transformationType === TransformationType.FromValue) {
+        destinationObj[prop.destinationKey] = prop.transformation.fromValue;
         continue;
       }
 
