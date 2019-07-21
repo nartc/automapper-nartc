@@ -18,16 +18,35 @@ import {
 export const Mapped = (): PropertyDecorator => (target: any, propertyKey) => {
   const type = (Reflect as any).getMetadata('design:type', target, propertyKey);
   let _val: typeof type = new type();
-  Object.defineProperty(target.constructor ? new target.constructor() : target, propertyKey, {
-    get(): typeof type {
-      return _val;
-    },
-    set(val: typeof type): void {
-      _val = val;
-    },
-    configurable: true,
-    enumerable: true
-  });
+
+  if (
+    !Object.keys(Object.getPrototypeOf(target)).length &&
+    Object.getPrototypeOf(target).constructor.name === 'Object'
+  ) {
+    Object.defineProperty(target, propertyKey, {
+      get(): typeof type {
+        return _val;
+      },
+      set(val: typeof type): void {
+        _val = val;
+      },
+      configurable: true,
+      enumerable: true
+    });
+  } else {
+    const ctor = new target.constructor();
+    Object.defineProperty(target, propertyKey, {
+      get(): typeof type {
+        return _val;
+      },
+      set(val: typeof type): void {
+        _val = val;
+      },
+      configurable: true,
+      enumerable: true
+    });
+    Object.assign(ctor, target);
+  }
 
   return Type(() => type);
 };
