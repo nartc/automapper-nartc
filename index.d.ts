@@ -1,6 +1,8 @@
 declare module 'automapper-nartc/automapper' {
+  import 'reflect-metadata';
   import { AutoMapperBase } from 'automapper-nartc/base';
   import { Configuration, Constructable, CreateMapFluentFunctions, MappingProfile } from 'automapper-nartc/types';
+  export const Mapped: PropertyDecorator;
   export class AutoMapper extends AutoMapperBase {
       private static _instance;
       private readonly _profiles;
@@ -140,6 +142,7 @@ declare module 'automapper-nartc/base' {
       } = any, TDestination extends {
           [key in keyof TDestination]: any;
       } = any>(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): TDestination;
+      private _assertMappingErrors;
       protected _createMappingObject<TSource extends {
           [key in keyof TSource]: any;
       } = any, TDestination extends {

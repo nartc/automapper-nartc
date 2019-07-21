@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { AutoMapperBase } from './base';
 import {
   ConditionPredicate,
@@ -12,6 +13,21 @@ import {
   MappingProfile,
   MappingProperty
 } from './types';
+
+export const Mapped: PropertyDecorator = (target1, propertyKey) => {
+  const type = (Reflect as any).getMetadata('design:type', target1, propertyKey);
+  let _val: typeof type = new type();
+  Object.defineProperty(target1, propertyKey, {
+    get(): typeof type {
+      return _val;
+    },
+    set(val: typeof type): void {
+      _val = val;
+    },
+    configurable: true,
+    enumerable: true
+  });
+};
 
 export class AutoMapper extends AutoMapperBase {
   private static _instance: AutoMapper = new AutoMapper();
