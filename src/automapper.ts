@@ -14,10 +14,10 @@ import {
   MappingProperty
 } from './types';
 
-export const Mapped: PropertyDecorator = (target1, propertyKey) => {
-  const type = (Reflect as any).getMetadata('design:type', target1, propertyKey);
+export const Mapped: PropertyDecorator = (target: any, propertyKey) => {
+  const type = (Reflect as any).getMetadata('design:type', target, propertyKey);
   let _val: typeof type = new type();
-  Object.defineProperty(target1, propertyKey, {
+  Object.defineProperty(target.constructor ? new target.constructor() : target, propertyKey, {
     get(): typeof type {
       return _val;
     },
