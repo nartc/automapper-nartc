@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { AutoMapperBase } from './base';
 import {
   ConditionPredicate,
@@ -23,32 +23,15 @@ export const MapInitialize = (): PropertyDecorator => (target: any, propertyKey)
     !Object.keys(Object.getPrototypeOf(target)).length &&
     Object.getPrototypeOf(target).constructor.name === 'Object'
   ) {
-    Object.defineProperty(target, propertyKey, {
-      get(): typeof type {
-        return _val;
-      },
-      set(val: typeof type): void {
-        _val = val;
-      },
-      configurable: true,
-      enumerable: true
-    });
+    target[propertyKey] = new type();
+    Expose()(target, propertyKey as any);
+    Type(() => type)(target, propertyKey as any);
   } else {
     const ctor = new target.constructor();
-    Object.defineProperty(target, propertyKey, {
-      get(): typeof type {
-        return _val;
-      },
-      set(val: typeof type): void {
-        _val = val;
-      },
-      configurable: true,
-      enumerable: true
-    });
-    Object.assign(ctor, target);
+    ctor[propertyKey] = new type();
+    Expose()(ctor, propertyKey as any);
+    Type(() => type)(ctor, propertyKey as any);
   }
-
-  return Type(() => type);
 };
 
 export class AutoMapper extends AutoMapperBase {
