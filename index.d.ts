@@ -2,7 +2,7 @@ declare module 'automapper-nartc/automapper' {
   import 'reflect-metadata';
   import { AutoMapperBase } from 'automapper-nartc/base';
   import { Configuration, Constructable, CreateMapFluentFunctions, MappingProfile } from 'automapper-nartc/types';
-  export const Mapped: () => PropertyDecorator;
+  export const MapInitialize: () => PropertyDecorator;
   export class AutoMapper extends AutoMapperBase {
       private static _instance;
       private readonly _profiles;

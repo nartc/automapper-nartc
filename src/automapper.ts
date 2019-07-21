@@ -15,7 +15,7 @@ import {
   MappingProperty
 } from './types';
 
-export const Mapped = (): PropertyDecorator => (target: any, propertyKey) => {
+export const MapInitialize = (): PropertyDecorator => (target: any, propertyKey) => {
   const type = (Reflect as any).getMetadata('design:type', target, propertyKey);
   let _val: typeof type = new type();
 
