@@ -1,8 +1,9 @@
 declare module 'automapper-nartc/automapper' {
   import 'reflect-metadata';
+  import { ExposeOptions, TypeOptions } from 'class-transformer';
   import { AutoMapperBase } from 'automapper-nartc/base';
   import { Configuration, Constructable, CreateMapFluentFunctions, MappingProfile } from 'automapper-nartc/types';
-  export const MapInitialize: () => PropertyDecorator;
+  export const MapInitialize: (exposeOptions?: ExposeOptions | undefined, typeOptions?: TypeOptions | undefined) => PropertyDecorator;
   export class AutoMapper extends AutoMapperBase {
       private static _instance;
       private readonly _profiles;

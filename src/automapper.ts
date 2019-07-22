@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { Expose, Type } from 'class-transformer';
+import { Expose, ExposeOptions, Type, TypeHelpOptions, TypeOptions } from 'class-transformer';
 import { AutoMapperBase } from './base';
 import {
   ConditionPredicate,
@@ -15,22 +15,26 @@ import {
   MappingProperty
 } from './types';
 
-export const MapInitialize = (): PropertyDecorator => (target: any, propertyKey) => {
+export const MapInitialize = (
+  exposeOptions?: ExposeOptions,
+  typeOptions?: TypeOptions
+): PropertyDecorator => (target: any, propertyKey) => {
   const type = (Reflect as any).getMetadata('design:type', target, propertyKey);
-  let _val: typeof type = new type();
+  const exposeOpts = exposeOptions || {};
+  const typeOpts = typeOptions || {};
 
   if (
     !Object.keys(Object.getPrototypeOf(target)).length &&
     Object.getPrototypeOf(target).constructor.name === 'Object'
   ) {
     target[propertyKey] = new type();
-    Expose()(target, propertyKey as any);
-    Type(() => type)(target, propertyKey as any);
+    Expose(exposeOpts)(target, propertyKey as any);
+    Type(() => type, typeOpts)(target, propertyKey as any);
   } else {
     const ctor = new target.constructor();
     ctor[propertyKey] = new type();
     Expose()(ctor, propertyKey as any);
-    Type(() => type)(ctor, propertyKey as any);
+    Type(() => type, typeOpts)(ctor, propertyKey as any);
   }
 };
 
