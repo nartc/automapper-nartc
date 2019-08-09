@@ -119,6 +119,7 @@ export abstract class AutoMapperBase {
     const propKeys: Array<keyof TDestination> = [];
     for (let prop of properties.values()) {
       if (sourceObj[prop.destinationKey] === undefined || sourceObj[prop.destinationKey] === null) {
+        delete destinationObj[prop.destinationKey];
         continue;
       }
 
