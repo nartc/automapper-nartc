@@ -1,5 +1,5 @@
 import { plainToClass } from 'class-transformer';
-import { entries, get, lowerCase } from 'lodash';
+import { entries, get, lowerCase, isEmpty } from 'lodash';
 import {
   Constructable,
   ForMemberFunction,
@@ -82,6 +82,10 @@ export abstract class AutoMapperBase {
         }
 
         if (this._isArray(sourceVal)) {
+          if (isEmpty(sourceVal[0])) {
+            continue;
+          }
+
           const nestedMapping = this._getMappingForNestedKey<
             TSource[keyof TSource],
             TDestination[keyof TDestination]

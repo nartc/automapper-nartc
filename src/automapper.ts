@@ -33,7 +33,7 @@ export const MapInitialize = (
   } else {
     const ctor = new target.constructor();
     ctor[propertyKey] = new type();
-    Expose()(ctor, propertyKey as any);
+    Expose(exposeOpts)(ctor, propertyKey as any);
     Type(() => type, typeOpts)(ctor, propertyKey as any);
   }
 };
