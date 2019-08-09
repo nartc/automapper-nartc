@@ -75,6 +75,11 @@ export abstract class AutoMapperBase {
       }
 
       const sourceVal: TSource[keyof TSource] = sourceObj[key];
+      if (isEmpty(sourceVal) || sourceVal === undefined) {
+        delete destinationObj[key];
+        continue;
+      }
+
       if (typeof sourceVal === 'object') {
         if (this._isDate(sourceVal)) {
           destinationObj[key] = new Date(sourceVal) as TDestination[keyof TDestination];
@@ -83,6 +88,7 @@ export abstract class AutoMapperBase {
 
         if (this._isArray(sourceVal)) {
           if (isEmpty(sourceVal[0])) {
+            destinationObj[key] = [] as any;
             continue;
           }
 
