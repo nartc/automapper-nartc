@@ -75,7 +75,7 @@ export abstract class AutoMapperBase {
       }
 
       const sourceVal: TSource[keyof TSource] = sourceObj[key];
-      if (isEmpty(sourceVal) || sourceVal === undefined) {
+      if (sourceVal === undefined || sourceVal === null) {
         delete destinationObj[key];
         continue;
       }
