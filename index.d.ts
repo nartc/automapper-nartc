@@ -184,6 +184,7 @@ declare module 'automapper-nartc/naming/pascal-case-naming-convention' {
 
 }
 declare module 'automapper-nartc/types' {
+  export type Unpacked<T> = T extends (infer U)[] ? U : T extends (...args: any[]) => infer U ? U : T extends Promise<infer U> ? U : T;
   export enum TransformationType {
       /**
        * when `opts.ignore()` is used on `forMember()`
@@ -233,7 +234,7 @@ declare module 'automapper-nartc/types' {
       [key in keyof TDestination]: any;
   } = any, K extends keyof TDestination = never> extends SourceMemberConfigOptions<TSource, TDestination> {
       mapFrom(cb: MapFromCallback<TSource, TDestination, K>): void;
-      mapWith(destination: Constructable<TDestination[K]>): void;
+      mapWith(destination: Constructable<Unpacked<TDestination[K]>>): void;
       condition(predicate: ConditionPredicate<TSource>): void;
       fromValue(value: TDestination[K]): void;
   }
@@ -273,7 +274,7 @@ declare module 'automapper-nartc/types' {
   } = any> {
       transformationType: TransformationType;
       mapFrom: (source: TSource) => ReturnType<MapFromCallback<TSource, TDestination>>;
-      mapWith: Constructable<TDestination[keyof TDestination]>;
+      mapWith: Constructable<Unpacked<TDestination[keyof TDestination]>>;
       condition: ConditionPredicate<TSource>;
       fromValue: TDestination[keyof TDestination];
   }
