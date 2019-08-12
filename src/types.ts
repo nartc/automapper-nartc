@@ -1,3 +1,11 @@
+export type Unpacked<T> = T extends (infer U)[]
+  ? U
+  : T extends (...args: any[]) => infer U
+  ? U
+  : T extends Promise<infer U>
+  ? U
+  : T;
+
 export enum TransformationType {
   /**
    * when `opts.ignore()` is used on `forMember()`
@@ -49,7 +57,7 @@ export interface DestinationMemberConfigOptions<
 > extends SourceMemberConfigOptions<TSource, TDestination> {
   mapFrom(cb: MapFromCallback<TSource, TDestination, K>): void;
 
-  mapWith(destination: Constructable<TDestination[K]>): void;
+  mapWith(destination: Constructable<Unpacked<TDestination[K]>>): void;
 
   condition(predicate: ConditionPredicate<TSource>): void;
 
@@ -105,7 +113,7 @@ export interface MappingTransformation<
 > {
   transformationType: TransformationType;
   mapFrom: (source: TSource) => ReturnType<MapFromCallback<TSource, TDestination>>;
-  mapWith: Constructable<TDestination[keyof TDestination]>;
+  mapWith: Constructable<Unpacked<TDestination[keyof TDestination]>>;
   condition: ConditionPredicate<TSource>;
   fromValue: TDestination[keyof TDestination];
 }

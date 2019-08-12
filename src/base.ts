@@ -148,10 +148,16 @@ export abstract class AutoMapperBase {
 
       if (prop.transformation.transformationType === TransformationType.MapWith) {
         const mapping = this._getMappingForDestination(prop.transformation.mapWith);
-        destinationObj[prop.destinationKey] = this._map(
-          (sourceObj as any)[prop.destinationKey],
-          mapping as Mapping
-        );
+        const _source = (sourceObj as any)[prop.destinationKey];
+
+        if (this._isArray(_source)) {
+          destinationObj[prop.destinationKey] = isEmpty(_source[0])
+            ? []
+            : (this._mapArray(_source, mapping as Mapping) as any);
+          continue;
+        }
+
+        destinationObj[prop.destinationKey] = this._map(_source, mapping as Mapping);
         continue;
       }
 

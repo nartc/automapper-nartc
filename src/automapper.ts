@@ -12,7 +12,8 @@ import {
   MapFromCallback,
   Mapping,
   MappingProfile,
-  MappingProperty
+  MappingProperty,
+  Unpacked
 } from './types';
 
 export const MapInitialize = (
@@ -230,7 +231,7 @@ export class AutoMapper extends AutoMapperBase {
     let mapFrom: MapFromCallback<TSource, TDestination>;
     let condition: ConditionPredicate<TSource>;
     let fromValue: TDestination[keyof TDestination];
-    let mapWith: Constructable<TDestination[keyof TDestination]>;
+    let mapWith: Constructable<Unpacked<TDestination[keyof TDestination]>>;
 
     const opts: DestinationMemberConfigOptions<TSource, TDestination> = {
       mapFrom: cb => {
@@ -303,7 +304,7 @@ export class AutoMapper extends AutoMapperBase {
     let mapFrom: MapFromCallback<TDestination, TSource>;
     let condition: ConditionPredicate<TDestination>;
     let fromValue: TSource[keyof TSource];
-    let mapWith: Constructable<TSource[keyof TSource]>;
+    let mapWith: Constructable<Unpacked<TSource[keyof TSource]>>;
 
     const opts: DestinationMemberConfigOptions<TDestination, TSource> = {
       mapFrom: cb => {
