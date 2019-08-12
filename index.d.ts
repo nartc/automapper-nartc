@@ -233,7 +233,7 @@ declare module 'automapper-nartc/types' {
       [key in keyof TDestination]: any;
   } = any, K extends keyof TDestination = never> extends SourceMemberConfigOptions<TSource, TDestination> {
       mapFrom(cb: MapFromCallback<TSource, TDestination, K>): void;
-      mapWith(destination: Constructable<TDestination>): void;
+      mapWith(destination: Constructable<TDestination[K]>): void;
       condition(predicate: ConditionPredicate<TSource>): void;
       fromValue(value: TDestination[K]): void;
   }
@@ -273,7 +273,7 @@ declare module 'automapper-nartc/types' {
   } = any> {
       transformationType: TransformationType;
       mapFrom: (source: TSource) => ReturnType<MapFromCallback<TSource, TDestination>>;
-      mapWith: Constructable<TDestination>;
+      mapWith: Constructable<TDestination[keyof TDestination]>;
       condition: ConditionPredicate<TSource>;
       fromValue: TDestination[keyof TDestination];
   }
