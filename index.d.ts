@@ -200,7 +200,11 @@ declare module 'automapper-nartc/types' {
       /**
        * when `opts.fromValue()` is used on `forMember()`
        */
-      FromValue = 3
+      FromValue = 3,
+      /**
+       * when `opts.mapWith()` is used on `forMember()`
+       */
+      MapWith = 5
   }
   /**
    * A new-able type
@@ -229,6 +233,7 @@ declare module 'automapper-nartc/types' {
       [key in keyof TDestination]: any;
   } = any, K extends keyof TDestination = never> extends SourceMemberConfigOptions<TSource, TDestination> {
       mapFrom(cb: MapFromCallback<TSource, TDestination, K>): void;
+      mapWith(destination: Constructable<TDestination>): void;
       condition(predicate: ConditionPredicate<TSource>): void;
       fromValue(value: TDestination[K]): void;
   }
@@ -268,6 +273,7 @@ declare module 'automapper-nartc/types' {
   } = any> {
       transformationType: TransformationType;
       mapFrom: (source: TSource) => ReturnType<MapFromCallback<TSource, TDestination>>;
+      mapWith: Constructable<TDestination>;
       condition: ConditionPredicate<TSource>;
       fromValue: TDestination[keyof TDestination];
   }
