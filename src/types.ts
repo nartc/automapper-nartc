@@ -14,7 +14,11 @@ export enum TransformationType {
   /**
    * when `opts.fromValue()` is used on `forMember()`
    */
-  FromValue = 3
+  FromValue = 3,
+  /**
+   * when `opts.mapWith()` is used on `forMember()`
+   */
+  MapWith = 5
 }
 
 /**
@@ -44,6 +48,8 @@ export interface DestinationMemberConfigOptions<
   K extends keyof TDestination = never
 > extends SourceMemberConfigOptions<TSource, TDestination> {
   mapFrom(cb: MapFromCallback<TSource, TDestination, K>): void;
+
+  mapWith(destination: Constructable<TDestination>): void;
 
   condition(predicate: ConditionPredicate<TSource>): void;
 
@@ -99,6 +105,7 @@ export interface MappingTransformation<
 > {
   transformationType: TransformationType;
   mapFrom: (source: TSource) => ReturnType<MapFromCallback<TSource, TDestination>>;
+  mapWith: Constructable<TDestination>;
   condition: ConditionPredicate<TSource>;
   fromValue: TDestination[keyof TDestination];
 }

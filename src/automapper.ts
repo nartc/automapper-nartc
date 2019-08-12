@@ -230,10 +230,14 @@ export class AutoMapper extends AutoMapperBase {
     let mapFrom: MapFromCallback<TSource, TDestination>;
     let condition: ConditionPredicate<TSource>;
     let fromValue: TDestination[keyof TDestination];
+    let mapWith: Constructable<TDestination>;
 
     const opts: DestinationMemberConfigOptions<TSource, TDestination> = {
       mapFrom: cb => {
         mapFrom = cb;
+      },
+      mapWith: destination => {
+        mapWith = destination;
       },
       condition: predicate => {
         condition = predicate;
@@ -257,7 +261,9 @@ export class AutoMapper extends AutoMapperBase {
         // @ts-ignore
         condition,
         // @ts-ignore
-        fromValue
+        fromValue,
+        // @ts-ignore
+        mapWith
       }
     };
 
@@ -297,10 +303,14 @@ export class AutoMapper extends AutoMapperBase {
     let mapFrom: MapFromCallback<TDestination, TSource>;
     let condition: ConditionPredicate<TDestination>;
     let fromValue: TSource[keyof TSource];
+    let mapWith: Constructable<TSource>;
 
     const opts: DestinationMemberConfigOptions<TDestination, TSource> = {
       mapFrom: cb => {
         mapFrom = cb;
+      },
+      mapWith: destination => {
+        mapWith = destination;
       },
       condition: predicate => {
         condition = predicate;
@@ -324,7 +334,9 @@ export class AutoMapper extends AutoMapperBase {
         // @ts-ignore
         condition,
         // @ts-ignore
-        fromValue
+        fromValue,
+        // @ts-ignore
+        mapWith
       }
     };
 

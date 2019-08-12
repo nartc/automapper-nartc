@@ -1,5 +1,5 @@
 import { plainToClass } from 'class-transformer';
-import { entries, get, lowerCase, isEmpty } from 'lodash';
+import { entries, get, isEmpty, lowerCase } from 'lodash';
 import {
   Constructable,
   ForMemberFunction,
@@ -30,6 +30,10 @@ export abstract class AutoMapperBase {
 
     if (fnString.includes('fromValue')) {
       return TransformationType.FromValue;
+    }
+
+    if (fnString.includes('mapWith')) {
+      return TransformationType.MapWith;
     }
 
     return TransformationType.MapFrom;
@@ -139,6 +143,15 @@ export abstract class AutoMapperBase {
 
       if (prop.transformation.transformationType === TransformationType.FromValue) {
         destinationObj[prop.destinationKey] = prop.transformation.fromValue;
+        continue;
+      }
+
+      if (prop.transformation.transformationType === TransformationType.MapWith) {
+        const mapping = this._getMappingForDestination(prop.transformation.mapWith);
+        destinationObj[prop.destinationKey] = this._map(
+          (sourceObj as any)[prop.destinationKey],
+          mapping as Mapping
+        );
         continue;
       }
 
