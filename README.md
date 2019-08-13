@@ -93,6 +93,7 @@ class UserVm {
 ```
 
 3. Decorate all of your properties with `@Expose()`. `@Expose` is imported from `class-transformer`. This will allow the engine to be aware of all the properties available in a certain **class**.
+
 ```typescript
 class User {
   @Expose()
@@ -117,7 +118,8 @@ class UserVm {
 }
 ```
 
-**NOTE: If you have nested model, like `profile` in this case, you will want to use `@Type()` on those as well. `@Type()` is also imported from `class-transformer`.
+**NOTE: If you have nested model, like `profile` in this case, you will want to use `@Type()` on those as well. `@Type()` is also imported from `class-transformer`.**
+
 ```typescript
 class User {
   @Expose()
@@ -143,7 +145,9 @@ class UserVm {
   lastName?: string;
 }
 ```
+
 However, `automapper-nartc` provides a short-hand decorator `@ExposedType()` instead of explicitly use `@Expose()` and `@Type()` on a nested model property.
+
 ```typescript
 class UserVm {
   @Expose()
@@ -224,5 +228,5 @@ console.log('instance of UserVm?', userVm instanceof UserVm); // true
 
 ## Demo
 
-Stackblitz Demo
-[Stackblitz](https://codesandbox.io/s/automapper-nartc-example-l96nw)
+Codesandbox Demo
+[Codesandbox](https://codesandbox.io/s/automapper-nartc-example-l96nw)
