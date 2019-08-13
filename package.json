@@ -115,7 +115,6 @@
   },
   "dependencies": {
     "lodash": "4.17.15",
-    "class-transformer": "0.2.3",
-    "reflect-metadata": "0.1.13"
+    "class-transformer": "0.2.3"
   }
 }

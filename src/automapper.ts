@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import { Expose, ExposeOptions, Type, TypeHelpOptions, TypeOptions } from 'class-transformer';
 import { AutoMapperBase } from './base';
 import {
@@ -26,23 +25,23 @@ export const MapInitialize = (
   exposeOptions?: ExposeOptions,
   typeOptions?: TypeOptions
 ): PropertyDecorator => (target: any, propertyKey) => {
-  const type = (Reflect as any).getMetadata('design:type', target, propertyKey);
-  const exposeOpts = exposeOptions || {};
-  const typeOpts = typeOptions || {};
-
-  if (
-    !Object.keys(Object.getPrototypeOf(target)).length &&
-    Object.getPrototypeOf(target).constructor.name === 'Object'
-  ) {
-    target[propertyKey] = new type();
-    Expose(exposeOpts)(target, propertyKey as any);
-    Type(() => type, typeOpts)(target, propertyKey as any);
-  } else {
-    const ctor = new target.constructor();
-    ctor[propertyKey] = new type();
-    Expose(exposeOpts)(ctor, propertyKey as any);
-    Type(() => type, typeOpts)(ctor, propertyKey as any);
-  }
+  // const type = (Reflect as any).getMetadata('design:type', target, propertyKey);
+  // const exposeOpts = exposeOptions || {};
+  // const typeOpts = typeOptions || {};
+  //
+  // if (
+  //   !Object.keys(Object.getPrototypeOf(target)).length &&
+  //   Object.getPrototypeOf(target).constructor.name === 'Object'
+  // ) {
+  //   target[propertyKey] = new type();
+  //   Expose(exposeOpts)(target, propertyKey as any);
+  //   Type(() => type, typeOpts)(target, propertyKey as any);
+  // } else {
+  //   const ctor = new target.constructor();
+  //   ctor[propertyKey] = new type();
+  //   Expose(exposeOpts)(ctor, propertyKey as any);
+  //   Type(() => type, typeOpts)(ctor, propertyKey as any);
+  // }
 };
 
 /**

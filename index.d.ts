@@ -1,9 +1,22 @@
 declare module 'automapper-nartc/automapper' {
-  import 'reflect-metadata';
-  import { ExposeOptions, TypeOptions } from 'class-transformer';
+  import { ExposeOptions, TypeHelpOptions, TypeOptions } from 'class-transformer';
   import { AutoMapperBase } from 'automapper-nartc/base';
   import { Configuration, Constructable, CreateMapFluentFunctions, MappingProfile } from 'automapper-nartc/types';
+  /**
+   *
+   * @param {ExposeOptions} exposeOptions
+   * @param {TypeOptions} typeOptions
+   * @deprecated Please use `@ExposedType()` instead.
+   */
   export const MapInitialize: (exposeOptions?: ExposeOptions | undefined, typeOptions?: TypeOptions | undefined) => PropertyDecorator;
+  /**
+   * Combined Expose and Type from class-transformer
+   *
+   * @param {(type?: TypeHelpOptions) => Function} typeFn
+   * @param {ExposeOptions} exposeOptions
+   * @param {TypeOptions} typeOptions
+   */
+  export const ExposedType: (typeFn: (type?: TypeHelpOptions | undefined) => Function, exposeOptions?: ExposeOptions | undefined, typeOptions?: TypeOptions | undefined) => PropertyDecorator;
   export class AutoMapper extends AutoMapperBase {
       private static _instance;
       private readonly _profiles;

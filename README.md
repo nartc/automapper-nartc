@@ -21,12 +21,12 @@ So far, the following is supported:
 - [x] Basic Mapping for nested classes
 - [x] Array/List Mapping
 - [x] Flattening
+- [x] ReverseMap - Very basic `reverseMapping` feature. Use for primitives models only if you can.
 
-> Please be advised that the current state of this library is for learning purposes and I'd appreciate any help/guides. Everything is still in beta and DO NOT USE in production.
+**NOTE: Please be advised that the current state of this library is for learning purposes and I'd appreciate any help/guides. Everything is still in beta and DO NOT USE in production.**
 
 #### Future features:
 
-- [ ] ReverseMap
 - [ ] Type Converters
 - [ ] Value Resolvers
 - [ ] Value Converters ?
@@ -42,7 +42,7 @@ Contributions are appreciated.
 npm install --save automapper-nartc
 ```
 
-> Again, I'm still in the learning process. The library makes use of [typescript-library-start](https://github.com/alexjoverm/typescript-library-starter) which is awesome. But I do feel like something is missing. For example, typings files are separated.
+**NOTE: `automapper-nartc` depends on `class-transformer`. `class-transformer` will also be installed when you install this library.**
 
 ## Usage
 
@@ -78,28 +78,87 @@ class User {
 2. And you also have couple of `View Models` (or `DTOs`):
 
 ```typescript
-class AddressVm {
-  constructor(public addressString: string) {}
-}
-
 class ProfileVm {
-  constructor(public bio: string, public email: string, public addressStrings: AddressVm[]) {}
+  bio: string;
+  email: string;
+  addressStrings: string[];
 }
 
 class UserVm {
-  constructor(
-    public fullName: string,
-    public profile: ProfileVm,
-    public firstName?: string,
-    public lastName?: string
-  ) {}
+  fullName: string;
+  profile: ProfileVm;
+  firstName?: string;
+  lastName?: string;
 }
 ```
 
-> You have to use the short-hand version to declare your Class fields. This will make sure the Object will be instantiated with all fields available.
+3. Decorate all of your properties with `@Expose()`. `@Expose` is imported from `class-transformer`. This will allow the engine to be aware of all the properties available in a certain **class**.
+```typescript
+class User {
+  @Expose()
+  firstName: string;
+  @Expose()
+  lastName: string;
+  @Expose()
+  password: string;
+  @Expose()
+  profile: Profile;
+}
 
-3. Next, import `Mapper` from `automapper-nartc`
-4. Initialize `Mapper` with `initialize()` method. `initialize()` expects a `Configuration` callback that will give you access to the `Configuration` object. There are two methods on the `Configuration` object that you can use to setup your `Mapper`
+class UserVm {
+  @Expose()
+  fullName: string;
+  @Expose()
+  profile: ProfileVm;
+  @Expose()
+  firstName?: string;
+  @Expose()
+  lastName?: string;
+}
+```
+
+**NOTE: If you have nested model, like `profile` in this case, you will want to use `@Type()` on those as well. `@Type()` is also imported from `class-transformer`.
+```typescript
+class User {
+  @Expose()
+  firstName: string;
+  @Expose()
+  lastName: string;
+  @Expose()
+  password: string;
+  @Expose()
+  @Type(() => Profile)
+  profile: Profile;
+}
+
+class UserVm {
+  @Expose()
+  fullName: string;
+  @Expose()
+  @Type(() => ProfileVm)
+  profile: ProfileVm;
+  @Expose()
+  firstName?: string;
+  @Expose()
+  lastName?: string;
+}
+```
+However, `automapper-nartc` provides a short-hand decorator `@ExposedType()` instead of explicitly use `@Expose()` and `@Type()` on a nested model property.
+```typescript
+class UserVm {
+  @Expose()
+  fullName: string;
+  @ExposedType(() => ProfileVm)
+  profile: ProfileVm;
+  @Expose()
+  firstName?: string;
+  @Expose()
+  lastName?: string;
+}
+```
+
+4. Next, import `Mapper` from `automapper-nartc`
+5. Initialize `Mapper` with `initialize()` method. `initialize()` expects a `Configuration` callback that will give you access to the `Configuration` object. There are two methods on the `Configuration` object that you can use to setup your `Mapper`
 
 - `createMap()`: `createMap()` expects a **source** as the first argument and the **destination** as the second argument. `createMap()` returns `CreateMapFluentFunctions<TSource, TDestination>` (Read more at [API Reference](https://nartc.github.io/automapper-nartc/index.html)).
 
@@ -108,6 +167,8 @@ import { Mapper, MappingProfileBase } from 'automapper-nartc';
 
 Mapper.initialize(config => {
   config.createMap(User, UserVm); // create a mapping from User to UserVm (one direction)
+  config.createMap(Profile, ProfileVm)
+    .forMember('addressStrings', opts => opts.mapFrom(s => s.addresses.map(... /* map to addressString however you like */)));
 });
 ```
 
@@ -164,4 +225,4 @@ console.log('instance of UserVm?', userVm instanceof UserVm); // true
 ## Demo
 
 Stackblitz Demo
-[Stackblitz](https://stackblitz.com/edit/typescript-automapper-nartc)
+[Stackblitz](https://codesandbox.io/s/automapper-nartc-example-l96nw)
