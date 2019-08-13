@@ -16,6 +16,12 @@ import {
   Unpacked
 } from './types';
 
+/**
+ *
+ * @param {ExposeOptions} exposeOptions
+ * @param {TypeOptions} typeOptions
+ * @deprecated Please use `@ExposedType()` instead.
+ */
 export const MapInitialize = (
   exposeOptions?: ExposeOptions,
   typeOptions?: TypeOptions
@@ -37,6 +43,22 @@ export const MapInitialize = (
     Expose(exposeOpts)(ctor, propertyKey as any);
     Type(() => type, typeOpts)(ctor, propertyKey as any);
   }
+};
+
+/**
+ * Combined Expose and Type from class-transformer
+ *
+ * @param {(type?: TypeHelpOptions) => Function} typeFn
+ * @param {ExposeOptions} exposeOptions
+ * @param {TypeOptions} typeOptions
+ */
+export const ExposedType = (
+  typeFn: (type?: TypeHelpOptions) => Function,
+  exposeOptions?: ExposeOptions,
+  typeOptions?: TypeOptions
+): PropertyDecorator => (target: any, propertyKey) => {
+  Expose(exposeOptions)(target, propertyKey as string);
+  Type(typeFn, typeOptions)(target, propertyKey as string);
 };
 
 export class AutoMapper extends AutoMapperBase {
