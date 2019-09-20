@@ -122,11 +122,6 @@ export abstract class AutoMapperBase {
 
     const propKeys: Array<keyof TDestination> = [];
     for (let prop of properties.values()) {
-      if (sourceObj[prop.destinationKey] === undefined || sourceObj[prop.destinationKey] === null) {
-        delete destinationObj[prop.destinationKey];
-        continue;
-      }
-
       propKeys.push(prop.destinationKey);
       if (prop.transformation.transformationType === TransformationType.Ignore) {
         destinationObj[prop.destinationKey] = null as any;
@@ -136,7 +131,7 @@ export abstract class AutoMapperBase {
       if (prop.transformation.transformationType === TransformationType.Condition) {
         const condition = prop.transformation.condition(sourceObj);
         if (condition) {
-          destinationObj[prop.destinationKey] = (sourceObj as any)[prop.destinationKey];
+          destinationObj[prop.destinationKey] = (sourceObj as any)[prop.destinationKey] || null;
         }
         continue;
       }
