@@ -100,6 +100,10 @@ declare module 'automapper-nartc/automapper' {
        * @param {Constructable<TDestination>} destination - the Destination model
        */
       createMap<TSource extends {} = any, TDestination extends {} = any>(source: Constructable<TSource>, destination: Constructable<TDestination>): CreateMapFluentFunctions<TSource, TDestination>;
+      /**
+       * Dispose Mappings and Profiles created on the Mapper singleton
+       */
+      dispose(): void;
       private _createMappingFluentFunctions;
       private _createMapForMember;
       private _createReverseMap;
@@ -172,6 +176,7 @@ declare module 'automapper-nartc/base' {
       } = any>(fn: ForPathDestinationFn<T>): keyof T;
       protected _getMapping<TSource, TDestination>(source: Constructable<TSource>, destination: Constructable<TDestination>): Mapping<TSource, TDestination>;
       protected _getMappingForDestination<TSource, TDestination>(destination: Constructable<TDestination>): Mapping<TSource, TDestination>;
+      protected _dispose(): void;
       private _hasMapping;
       private _getMappingKey;
       private _isClass;
@@ -179,9 +184,6 @@ declare module 'automapper-nartc/base' {
       private _isArray;
       private _getMappingForNestedKey;
   }
-
-}
-declare module 'automapper-nartc/helpers' {
 
 }
 declare module 'automapper-nartc/index' {

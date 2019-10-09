@@ -221,6 +221,9 @@ export class AutoMapper extends AutoMapperBase {
     return this._createMappingFluentFunctions<TSource, TDestination>(mapping);
   }
 
+  /**
+   * Dispose Mappings and Profiles created on the Mapper singleton
+   */
   public dispose(): void {
     Object.keys(this._profiles).forEach(key => {
       delete this._profiles[key];
