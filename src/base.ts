@@ -1,5 +1,7 @@
 import { plainToClass } from 'class-transformer';
-import { entries, get, isEmpty, lowerCase } from 'lodash';
+import get from 'lodash.get';
+import isEmpty from 'lodash.isempty';
+import lowerCase from 'lodash.lowercase';
 import {
   Constructable,
   ForMemberFunction,
@@ -302,6 +304,12 @@ export abstract class AutoMapperBase {
     return mapping;
   }
 
+  protected _dispose() {
+    Object.keys(this._mappings).forEach(key => {
+      delete this._mappings[key];
+    });
+  }
+
   private _hasMapping<TSource, TDestination>(
     source: Constructable<TSource>,
     destination: Constructable<TDestination>
@@ -340,8 +348,8 @@ export abstract class AutoMapperBase {
   private _getMappingForNestedKey<TSource, TDestination>(
     val: Constructable<TSource>
   ): Mapping<TSource, TDestination> {
-    const mappingName = val.name || val.constructor.name;
-    const destinationEntry = entries(this._mappings)
+    const mappingName = val.constructor.name;
+    const destinationEntry = Object.entries(this._mappings)
       .filter(([key, _]) => key.includes(mappingName))
       .find(([key, _]) => this._mappings[key].sourceKey === mappingName);
 

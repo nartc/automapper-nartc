@@ -221,6 +221,13 @@ export class AutoMapper extends AutoMapperBase {
     return this._createMappingFluentFunctions<TSource, TDestination>(mapping);
   }
 
+  public dispose(): void {
+    Object.keys(this._profiles).forEach(key => {
+      delete this._profiles[key];
+    });
+    super._dispose();
+  }
+
   private _createMappingFluentFunctions<TSource extends {} = any, TDestination extends {} = any>(
     mapping: Mapping<TSource, TDestination>
   ): CreateMapFluentFunctions<TSource, TDestination> {
