@@ -1,11 +1,14 @@
 import { Expose } from 'class-transformer';
-import { AutoMapper, Mapper, MappingProfileBase } from '../src';
+import 'reflect-metadata';
+import { AutoMapper, ExposedType, Mapper, MappingProfileBase } from '../src';
 
 class User {
   @Expose()
   firstName!: string;
   @Expose()
   lastName!: string;
+  @ExposedType(() => Nested)
+  nested!: Nested;
 }
 
 class UserVm {
@@ -15,6 +18,8 @@ class UserVm {
   lastName!: string;
   @Expose()
   fullName!: string;
+  @ExposedType(() => NestedVm)
+  nested!: NestedVm;
 }
 
 class Address {
@@ -41,6 +46,28 @@ class Profile {
 class ProfileVm {
   @Expose()
   avatarUrl!: string;
+}
+
+class Nested {
+  @Expose()
+  foo!: string;
+  @Expose()
+  foobar!: number;
+  @Expose()
+  foobaz!: boolean;
+  @Expose()
+  foobarbar!: number;
+}
+
+class NestedVm {
+  @Expose()
+  bar!: string;
+  @Expose()
+  barfoo!: number;
+  @Expose()
+  bazfoo!: boolean;
+  @Expose()
+  barbarfoo!: number;
 }
 
 class AddressProfile extends MappingProfileBase {
@@ -103,14 +130,29 @@ describe('automapper-nartc: mapping', () => {
       .forPath(d => d.bio, opts => opts.ignore());
     Mapper.initialize(cfg => {
       cfg
+        .createMap(Nested, NestedVm)
+        .forMember('bar', opts => opts.mapFrom(s => s.foo))
+        .forMember('barfoo', opts => opts.ignore())
+        .forMember('bazfoo', opts => opts.fromValue(false))
+        .forMember('barbarfoo', opts => opts.condition(s => s.foobaz))
+        .reverseMap()
+        .forPath(s => s.foobarbar, opts => opts.ignore())
+        .forPath(s => s.foobar, opts => opts.condition(d => d.bazfoo))
+        .forPath(s => s.foobaz, opts => opts.fromValue(true));
+      cfg
         .createMap(User, UserVm)
-        .forMember('fullName', opts => opts.mapFrom(s => s.firstName + ' ' + s.lastName));
+        .forMember('fullName', opts => opts.mapFrom(s => s.firstName + ' ' + s.lastName))
+        .forMember('nested', opts => opts.mapWith(NestedVm))
+        .reverseMap()
+        .forPath(s => s.nested, opts => opts.mapWith(Nested));
       cfg.addProfile(new AddressProfile());
     });
 
     user = new User();
     user.firstName = 'Chau';
     user.lastName = 'Tran';
+    user.nested = new Nested();
+    user.nested.foo = 'foo';
 
     address = new Address();
     address.street = 'Some';
@@ -157,6 +199,24 @@ describe('automapper-nartc: mapping', () => {
     expect(vm).toBeInstanceOf(UserVm);
   });
 
+  it('map with nested model', () => {
+    const vm = Mapper.map(user, UserVm);
+    expect(vm.nested).toBeDefined();
+    expect(vm.nested.bar).toEqual(user.nested.foo);
+    expect(vm.nested).toBeInstanceOf(NestedVm);
+  });
+
+  it('map with overload method', () => {
+    const vm = Mapper.map(user, User, UserVm);
+    expect(vm.firstName).toEqual(user.firstName);
+    expect(vm.lastName).toEqual(user.lastName);
+    expect(vm.fullName).toEqual(user.firstName + ' ' + user.lastName);
+    expect(vm).toBeInstanceOf(UserVm);
+    expect(vm.nested).toBeDefined();
+    expect(vm.nested.bar).toEqual(user.nested.foo);
+    expect(vm.nested).toBeInstanceOf(NestedVm);
+  });
+
   it('map with config.addProfile', () => {
     const vm = Mapper.map(address, AddressVm);
     expect(vm.addressString).toEqual(address.street + ' ' + address.city + ' ' + address.state);
@@ -167,6 +227,24 @@ describe('automapper-nartc: mapping', () => {
     const userVms = Mapper.mapArray(users, UserVm);
     const addressVms = Mapper.mapArray(addresses, AddressVm);
     const profileVms = Mapper.mapArray(profiles, ProfileVm);
+
+    expect(userVms).toBeTruthy();
+    expect(userVms).toHaveLength(1);
+    userVms.forEach(vm => expect(vm).toBeInstanceOf(UserVm));
+
+    expect(addressVms).toBeTruthy();
+    expect(addressVms).toHaveLength(1);
+    addressVms.forEach(vm => expect(vm).toBeInstanceOf(AddressVm));
+
+    expect(profileVms).toBeTruthy();
+    expect(profileVms).toHaveLength(1);
+    profileVms.forEach(vm => expect(vm).toBeInstanceOf(ProfileVm));
+  });
+
+  it('mapArray with overload method', () => {
+    const userVms = Mapper.mapArray(users, User, UserVm);
+    const addressVms = Mapper.mapArray(addresses, Address, AddressVm);
+    const profileVms = Mapper.mapArray(profiles, Profile, ProfileVm);
 
     expect(userVms).toBeTruthy();
     expect(userVms).toHaveLength(1);

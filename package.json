@@ -119,6 +119,7 @@
     "lodash.get": "4.4.2",
     "lodash.isempty": "4.4.0",
     "lodash.lowercase": "4.3.0",
-    "class-transformer": "0.2.3"
+    "class-transformer": "0.2.3",
+    "reflect-metadata": "0.1.13"
   }
 }

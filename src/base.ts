@@ -134,6 +134,7 @@ export abstract class AutoMapperBase {
         const condition = prop.transformation.condition(sourceObj);
         if (condition) {
           destinationObj[prop.destinationKey] = (sourceObj as any)[prop.destinationKey] || null;
+          console.warn(`${prop.destinationKey} does not exist on ${mapping.source}`);
         }
         continue;
       }
@@ -144,17 +145,23 @@ export abstract class AutoMapperBase {
       }
 
       if (prop.transformation.transformationType === TransformationType.MapWith) {
-        const mapping = this._getMappingForDestination(prop.transformation.mapWith);
+        const _mapping = this._getMappingForDestination(prop.transformation.mapWith);
         const _source = (sourceObj as any)[prop.destinationKey];
+
+        if (isEmpty(_source)) {
+          console.warn(`${prop.destinationKey} does not exist on ${_mapping.source}`);
+          destinationObj[prop.destinationKey] = null as any;
+          continue;
+        }
 
         if (this._isArray(_source)) {
           destinationObj[prop.destinationKey] = isEmpty(_source[0])
             ? []
-            : (this._mapArray(_source, mapping as Mapping) as any);
+            : (this._mapArray(_source, _mapping as Mapping) as any);
           continue;
         }
 
-        destinationObj[prop.destinationKey] = this._map(_source, mapping as Mapping);
+        destinationObj[prop.destinationKey] = this._map(_source, _mapping as Mapping);
         continue;
       }
 

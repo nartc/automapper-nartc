@@ -16,31 +16,6 @@ import {
 } from './types';
 
 /**
- *
- * @param {ExposeOptions} exposeOptions
- * @param {TypeOptions} typeOptions
- * @deprecated Please use `@ExposedType()` instead.
- */
-export const MapInitialize = (
-  exposeOptions?: ExposeOptions,
-  typeOptions?: TypeOptions
-): PropertyDecorator => (target: any, propertyKey) => {
-  const type = (Reflect as any).getMetadata('design:type', target, propertyKey);
-
-  if (
-    !Object.keys(Object.getPrototypeOf(target)).length &&
-    Object.getPrototypeOf(target).constructor.name === 'Object'
-  ) {
-    target[propertyKey] = new type();
-    ExposedType(() => type, exposeOptions, typeOptions)(target, propertyKey);
-  } else {
-    const ctor = new target.constructor();
-    ctor[propertyKey] = new type();
-    ExposedType(() => type, exposeOptions, typeOptions)(ctor, propertyKey as any);
-  }
-};
-
-/**
  * Combined Expose and Type from class-transformer
  *
  * @param {(type?: TypeHelpOptions) => Function} typeFn
