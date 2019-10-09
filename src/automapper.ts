@@ -69,9 +69,8 @@ export class AutoMapper extends AutoMapperBase {
    */
   public initialize(configFn: (config: Configuration) => void): void {
     const configuration: Configuration = {
-      addProfile: (profile: MappingProfile): void => {
-        profile.configure();
-        this._profiles[profile.profileName] = profile;
+      addProfile: (profile: MappingProfile): AutoMapper => {
+        return this.addProfile(profile);
       },
       createMap: <TSource extends {} = any, TDestination extends {} = any>(
         source: Constructable<TSource>,
@@ -180,6 +179,21 @@ export class AutoMapper extends AutoMapperBase {
       TDestination
     >);
     return super._mapArray(sourceObj, mapping);
+  }
+
+  /**
+   * Add MappingProfile to the current instance of AutoMapper
+   *
+   * @param {MappingProfile} profile - Profile being added
+   */
+  public addProfile(profile: MappingProfile): AutoMapper {
+    if (this._profiles[profile.profileName]) {
+      throw new Error(`${profile.profileName} is already existed on the current Mapper instance`);
+    }
+
+    profile.configure();
+    this._profiles[profile.profileName] = profile;
+    return this;
   }
 
   /**

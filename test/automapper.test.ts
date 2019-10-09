@@ -112,6 +112,30 @@ describe('automapper-nartc', () => {
     Mapper.dispose();
     expect(Mapper).toEqual(_mapper);
   });
+
+  it('AutoMapper fluent API for Profile', () => {
+    const _instance = Mapper.addProfile(new AddressProfile());
+    expect(_instance).toBeInstanceOf(AutoMapper);
+    expect(_instance).toEqual(Mapper);
+    Mapper.dispose();
+  });
+
+  it('AutoMapper fluent API throw error for adding duplicate Profile', () => {
+    const profile = new AddressProfile();
+    let message: string = '';
+    try {
+      Mapper.addProfile(profile).addProfile(profile);
+    } catch (e) {
+      message = e.message;
+    }
+
+    expect(message).toBeDefined();
+    expect(message).toEqual(
+      `${profile.profileName} is already existed on the current Mapper instance`
+    );
+
+    Mapper.dispose();
+  });
 });
 
 describe('automapper-nartc: mapping', () => {
