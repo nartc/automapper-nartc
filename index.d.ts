@@ -3,13 +3,6 @@ declare module 'automapper-nartc/automapper' {
   import { AutoMapperBase } from 'automapper-nartc/base';
   import { Configuration, Constructable, CreateMapFluentFunctions, MappingProfile } from 'automapper-nartc/types';
   /**
-   *
-   * @param {ExposeOptions} exposeOptions
-   * @param {TypeOptions} typeOptions
-   * @deprecated Please use `@ExposedType()` instead.
-   */
-  export const MapInitialize: (exposeOptions?: ExposeOptions | undefined, typeOptions?: TypeOptions | undefined) => PropertyDecorator;
-  /**
    * Combined Expose and Type from class-transformer
    *
    * @param {(type?: TypeHelpOptions) => Function} typeFn
@@ -93,6 +86,12 @@ declare module 'automapper-nartc/automapper' {
        * @param {Constructable<TDestination>} destination - the Destination model
        */
       mapArray<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource[], source: Constructable<TSource>, destination: Constructable<TDestination>): TDestination[];
+      /**
+       * Add MappingProfile to the current instance of AutoMapper
+       *
+       * @param {MappingProfile} profile - Profile being added
+       */
+      addProfile(profile: MappingProfile): AutoMapper;
       /**
        * Create a mapping between Source and Destination without initializing the Mapper
        *
