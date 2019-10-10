@@ -50,7 +50,8 @@ declare module 'automapper-nartc/automapper' {
        * ```
        *
        * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-       * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped values
+       * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
+       *   values
        */
       map<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, destination: Constructable<TDestination>): TDestination;
       /**
@@ -75,7 +76,8 @@ declare module 'automapper-nartc/automapper' {
        * ```
        *
        * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-       * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped values
+       * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
+       *   values
        */
       mapArray<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource[], destination: Constructable<TDestination>): TDestination[];
       /**
@@ -123,15 +125,10 @@ declare module 'automapper-nartc/automapper' {
       protected constructor();
       /**
        * @abstract configure() method to be called when using with Mapper.initialize()
-       */
-      abstract configure(): void;
-      /**
-       * Profile's createMap. Call this.createMap in configure() to setup mapping between a Source and a Destination
        *
-       * @param {Constructable<TSource>} source - the Source model
-       * @param {Constructable<TDestination>} destination - the Destination model
+       * @param {AutoMapper} mapper - AutoMapper instance to add this Profile on
        */
-      protected createMap<TSource, TDestination>(source: Constructable<TSource>, destination: Constructable<TDestination>): CreateMapFluentFunctions<TSource, TDestination>;
+      abstract configure(mapper: AutoMapper): void;
   }
   /**
    * @instance AutoMapper singleton
@@ -198,6 +195,7 @@ declare module 'automapper-nartc/naming/pascal-case-naming-convention' {
 
 }
 declare module 'automapper-nartc/types' {
+  import { AutoMapper } from 'automapper-nartc/automapper';
   export type Unpacked<T> = T extends (infer U)[] ? U : T extends (...args: any[]) => infer U ? U : T extends Promise<infer U> ? U : T;
   export enum TransformationType {
       /**
@@ -313,7 +311,7 @@ declare module 'automapper-nartc/types' {
   }
   export interface MappingProfile {
       profileName: string;
-      configure: () => void;
+      configure: (mapper: AutoMapper) => void;
   }
 
 }
