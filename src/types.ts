@@ -1,3 +1,5 @@
+import { AutoMapper } from './automapper';
+
 export type Unpacked<T> = T extends (infer U)[]
   ? U
   : T extends (...args: any[]) => infer U
@@ -139,7 +141,7 @@ export interface Mapping<
 
 export interface MappingProfile {
   profileName: string;
-  configure: () => void;
+  configure: (mapper: AutoMapper) => void;
 }
 
 // export type NamingConvention = {

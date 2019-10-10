@@ -98,7 +98,8 @@ export class AutoMapper extends AutoMapperBase {
    * ```
    *
    * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-   * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped values
+   * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
+   *   values
    */
   public map<TSource extends {} = any, TDestination extends {} = any>(
     sourceObj: TSource,
@@ -145,7 +146,8 @@ export class AutoMapper extends AutoMapperBase {
    * ```
    *
    * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-   * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped values
+   * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
+   *   values
    */
   public mapArray<TSource extends {} = any, TDestination extends {} = any>(
     sourceObj: TSource[],
@@ -191,7 +193,7 @@ export class AutoMapper extends AutoMapperBase {
       throw new Error(`${profile.profileName} is already existed on the current Mapper instance`);
     }
 
-    profile.configure();
+    profile.configure(this);
     this._profiles[profile.profileName] = profile;
     return this;
   }
@@ -379,21 +381,10 @@ export abstract class MappingProfileBase implements MappingProfile {
 
   /**
    * @abstract configure() method to be called when using with Mapper.initialize()
-   */
-  abstract configure(): void;
-
-  /**
-   * Profile's createMap. Call this.createMap in configure() to setup mapping between a Source and a Destination
    *
-   * @param {Constructable<TSource>} source - the Source model
-   * @param {Constructable<TDestination>} destination - the Destination model
+   * @param {AutoMapper} mapper - AutoMapper instance to add this Profile on
    */
-  protected createMap<TSource, TDestination>(
-    source: Constructable<TSource>,
-    destination: Constructable<TDestination>
-  ): CreateMapFluentFunctions<TSource, TDestination> {
-    return Mapper.createMap(source, destination);
-  }
+  abstract configure(mapper: AutoMapper): void;
 }
 
 /**

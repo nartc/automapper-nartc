@@ -75,10 +75,12 @@ class AddressProfile extends MappingProfileBase {
     super();
   }
 
-  configure(): void {
-    this.createMap(Address, AddressVm).forMember('addressString', opts =>
-      opts.mapFrom(s => s.street + ' ' + s.city + ' ' + s.state)
-    );
+  configure(mapper: AutoMapper): void {
+    mapper
+      .createMap(Address, AddressVm)
+      .forMember('addressString', opts =>
+        opts.mapFrom(s => s.street + ' ' + s.city + ' ' + s.state)
+      );
   }
 }
 
