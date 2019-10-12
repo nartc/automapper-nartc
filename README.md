@@ -36,13 +36,17 @@ So far, the following is supported:
 
 Contributions are appreciated.
 
+#### Implementation note:
+
+I have plans in the near future to update how `forMember()` method works in terms of the method's signature. I might change it to a lambda expression to support `reverseMapping` better. But I am open to suggestions.
+
 ## Installation
 
 ```shell
 npm install --save automapper-nartc
 ```
 
-**NOTE: `automapper-nartc` depends on `class-transformer`. `class-transformer` will also be installed when you install this library.**
+**NOTE: `automapper-nartc` depends on `class-transformer` and `reflect-metadata`. `class-transformer` and `reflect-metadata` will also be installed when you install this library. Please also turn on `experimentalDecorators` and `emitDecoratorMetadata` in your `tsconfig` **
 
 ## Usage
 
@@ -161,7 +165,7 @@ class UserVm {
 }
 ```
 
-4. Next, import `Mapper` from `automapper-nartc`
+4. Next, import `Mapper` from `automapper-nartc`. You can also just instantiate a new instance of `AutoMapper` if you want to manage your instance.
 5. Initialize `Mapper` with `initialize()` method. `initialize()` expects a `Configuration` callback that will give you access to the `Configuration` object. There are two methods on the `Configuration` object that you can use to setup your `Mapper`
 
 - `createMap()`: `createMap()` expects a **source** as the first argument and the **destination** as the second argument. `createMap()` returns `CreateMapFluentFunctions<TSource, TDestination>` (Read more at [API Reference](https://nartc.github.io/automapper-nartc/index.html)).
@@ -200,8 +204,8 @@ export class UserProfile extends MappingProfileBase {
 
   // configure() is required since it is an abstract method. configure() will be called automatically by Mapper.
   // This is where you will setup your mapping with the class method: createMap
-  configure() {
-    this.createMap(User, UserVm).forMember('fullName', opts =>
+  configure(mapper: AutoMapper) {
+    mapper.createMap(User, UserVm).forMember('fullName', opts =>
       opts.mapFrom(source => source.firstName + ' ' + source.lastName)
     ); // You will get type-inference here
   }
