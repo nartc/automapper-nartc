@@ -168,9 +168,9 @@ describe('automapper-nartc: mapping', () => {
       cfg
         .createMap(User, UserVm)
         .forMember('fullName', opts => opts.mapFrom(s => s.firstName + ' ' + s.lastName))
-        .forMember('nested', opts => opts.mapWith(NestedVm))
+        .forMember('nested', opts => opts.mapWith(NestedVm, source => source.nested))
         .reverseMap()
-        .forPath(s => s.nested, opts => opts.mapWith(Nested));
+        .forPath(s => s.nested, opts => opts.mapWith(Nested, source => source.nested));
       cfg.addProfile(new AddressProfile());
     });
 
