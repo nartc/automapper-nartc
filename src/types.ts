@@ -41,9 +41,18 @@ export type MapFromCallback<
   TDestination extends { [key in keyof TDestination]: any } = any,
   K extends keyof TDestination = never
 > = (source: TSource) => TDestination[K];
+
 export type ConditionPredicate<TSource extends { [key in keyof TSource]: any }> = (
   source: TSource
 ) => boolean;
+
+export type MapWithOptions<
+  TSource extends { [key in keyof TSource]: any } = any,
+  TDestination extends { [key in keyof TDestination]: any } = any
+> = {
+  destination: Constructable<Unpacked<TDestination[keyof TDestination]>>;
+  value: MapFromCallback<TSource>;
+};
 
 export interface SourceMemberConfigOptions<
   TSource extends { [key in keyof TSource]: any } = any,
@@ -59,7 +68,10 @@ export interface DestinationMemberConfigOptions<
 > extends SourceMemberConfigOptions<TSource, TDestination> {
   mapFrom(cb: MapFromCallback<TSource, TDestination, K>): void;
 
-  mapWith(destination: Constructable<Unpacked<TDestination[K]>>): void;
+  mapWith(
+    destination: Constructable<Unpacked<TDestination[K]>>,
+    value: MapFromCallback<TSource>
+  ): void;
 
   condition(predicate: ConditionPredicate<TSource>): void;
 
@@ -115,7 +127,7 @@ export interface MappingTransformation<
 > {
   transformationType: TransformationType;
   mapFrom: (source: TSource) => ReturnType<MapFromCallback<TSource, TDestination>>;
-  mapWith: Constructable<Unpacked<TDestination[keyof TDestination]>>;
+  mapWith: MapWithOptions<TSource, TDestination>;
   condition: ConditionPredicate<TSource>;
   fromValue: TDestination[keyof TDestination];
 }

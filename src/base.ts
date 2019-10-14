@@ -145,11 +145,19 @@ export abstract class AutoMapperBase {
       }
 
       if (prop.transformation.transformationType === TransformationType.MapWith) {
-        const _mapping = this._getMappingForDestination(prop.transformation.mapWith);
-        const _source = (sourceObj as any)[prop.destinationKey];
+        const _mapping = this._getMappingForDestination(prop.transformation.mapWith.destination);
+        const _source = prop.transformation.mapWith.value(sourceObj);
 
         if (isEmpty(_source)) {
           console.warn(`${prop.destinationKey} does not exist on ${_mapping.source}`);
+          destinationObj[prop.destinationKey] = null as any;
+          continue;
+        }
+
+        if (!this._isClass(_source)) {
+          console.warn(
+            `${prop.destinationKey} is type ${prop.transformation.mapWith.destination.name} but ${_source} is a primitive. No mapping was executed`
+          );
           destinationObj[prop.destinationKey] = null as any;
           continue;
         }

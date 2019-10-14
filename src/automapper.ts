@@ -12,7 +12,7 @@ import {
   Mapping,
   MappingProfile,
   MappingProperty,
-  Unpacked
+  MapWithOptions
 } from './types';
 
 /**
@@ -247,14 +247,14 @@ export class AutoMapper extends AutoMapperBase {
     let mapFrom: MapFromCallback<TSource, TDestination>;
     let condition: ConditionPredicate<TSource>;
     let fromValue: TDestination[keyof TDestination];
-    let mapWith: Constructable<Unpacked<TDestination[keyof TDestination]>>;
+    let mapWith: MapWithOptions<TSource, TDestination>;
 
     const opts: DestinationMemberConfigOptions<TSource, TDestination> = {
       mapFrom: cb => {
         mapFrom = cb;
       },
-      mapWith: destination => {
-        mapWith = destination;
+      mapWith: (destination, value) => {
+        mapWith = { destination, value };
       },
       condition: predicate => {
         condition = predicate;
@@ -320,14 +320,14 @@ export class AutoMapper extends AutoMapperBase {
     let mapFrom: MapFromCallback<TDestination, TSource>;
     let condition: ConditionPredicate<TDestination>;
     let fromValue: TSource[keyof TSource];
-    let mapWith: Constructable<Unpacked<TSource[keyof TSource]>>;
+    let mapWith: MapWithOptions<TDestination, TSource>;
 
     const opts: DestinationMemberConfigOptions<TDestination, TSource> = {
       mapFrom: cb => {
         mapFrom = cb;
       },
-      mapWith: destination => {
-        mapWith = destination;
+      mapWith: (destination, value) => {
+        mapWith = { destination, value };
       },
       condition: predicate => {
         condition = predicate;
