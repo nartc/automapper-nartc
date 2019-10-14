@@ -63,6 +63,36 @@ declare module 'automapper-nartc/automapper' {
        */
       map<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, source: Constructable<TSource>, destination: Constructable<TDestination>): TDestination;
       /**
+       * Map from Source to Destination Async. Mapping operation will be run as a micro task.
+       *
+       * @example
+       *
+       *
+       * ```ts
+       * const user = new User();
+       * user.firstName = 'John';
+       * user.lastName = 'Doe';
+       *
+       * const userVm = await Mapper.mapAsync(user, UserVm);
+       * ```
+       *
+       * @param {TSource} sourceObj - the sourceObj that are going to be mapped
+       * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
+       *   values
+       *
+       * @returns {Promise<TDestination>} Promise that resolves TDestination
+       */
+      mapAsync<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, destination: Constructable<TDestination>): Promise<TDestination>;
+      /**
+       * Map from Source to Destination async
+       *
+       * @param {TSource} sourceObj - the sourceObj that are going to be mapped
+       * @param {Constructable<TSource>} source - the Source model
+       * @param {Constructable<TDestination>} destination - the Destination model
+       * @returns {Promise<TDestination>} Promise that resolves TDestination
+       */
+      mapAsync<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, source: Constructable<TSource>, destination: Constructable<TDestination>): Promise<TDestination>;
+      /**
        * Map from a list of Source to a list of Destination
        *
        * @example
@@ -88,6 +118,37 @@ declare module 'automapper-nartc/automapper' {
        * @param {Constructable<TDestination>} destination - the Destination model
        */
       mapArray<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource[], source: Constructable<TSource>, destination: Constructable<TDestination>): TDestination[];
+      /**
+       * Map from a list of Source to a list of Destination async. Mapping operation will be run as a
+       * micro task.
+       *
+       * @example
+       *
+       *
+       * ```ts
+       * const addresses = [];
+       * addresses.push(new Address(), new Address());
+       *
+       * const addressesVm = await Mapper.mapArrayAsync(addresses, AddressVm);
+       * ```
+       *
+       * @param {TSource} sourceObj - the sourceObj that are going to be mapped
+       * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
+       *   values
+       *
+       * @returns {Promise<TDestination[]>>} Promise that resolves a TDestination[]
+       */
+      mapArrayAsync<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource[], destination: Constructable<TDestination>): Promise<TDestination[]>;
+      /**
+       * Map from a list of Source to a list of Destination async.
+       *
+       * @param {TSource} sourceObj - the sourceObj that are going to be mapped
+       * @param {Constructable<TSource>} source - the Source model
+       * @param {Constructable<TDestination>} destination - the Destination model
+       *
+       * @returns {Promise<TDestination[]>>} Promise that resolves a TDestination[]
+       */
+      mapArrayAsync<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource[], source: Constructable<TSource>, destination: Constructable<TDestination>): Promise<TDestination[]>;
       /**
        * Add MappingProfile to the current instance of AutoMapper
        *
@@ -137,7 +198,7 @@ declare module 'automapper-nartc/automapper' {
 
 }
 declare module 'automapper-nartc/base' {
-  import { Constructable, ForMemberFunction, ForPathDestinationFn, Mapping, TransformationType } from 'automapper-nartc/types';
+  import { Constructable, ForMemberExpression, ForPathDestinationFn, Mapping, TransformationType } from 'automapper-nartc/types';
   export abstract class AutoMapperBase {
       protected readonly _mappings: {
           [key: string]: Mapping;
@@ -145,7 +206,7 @@ declare module 'automapper-nartc/base' {
       protected constructor();
       protected getTransformationType<TSource extends {
           [key in keyof TSource]: any;
-      } = any, TDestination extends {} = any>(forMemberFn: ForMemberFunction<TSource, TDestination>): TransformationType;
+      } = any, TDestination extends {} = any>(forMemberFn: ForMemberExpression<TSource, TDestination>): TransformationType;
       protected _mapArray<TSource extends {
           [key in keyof TSource]: any;
       } = any, TDestination extends {
@@ -156,6 +217,16 @@ declare module 'automapper-nartc/base' {
       } = any, TDestination extends {
           [key in keyof TDestination]: any;
       } = any>(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): TDestination;
+      protected _mapAsync<TSource extends {
+          [key in keyof TSource]: any;
+      } = any, TDestination extends {
+          [key in keyof TDestination]: any;
+      } = any>(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): Promise<TDestination>;
+      protected _mapArrayAsync<TSource extends {
+          [key in keyof TSource]: any;
+      } = any, TDestination extends {
+          [key in keyof TDestination]: any;
+      } = any>(sourceArray: TSource[], mapping: Mapping<TSource, TDestination>): Promise<TDestination[]>;
       private _assertMappingErrors;
       protected _createMappingObject<TSource extends {
           [key in keyof TSource]: any;
@@ -178,6 +249,7 @@ declare module 'automapper-nartc/base' {
       private _isClass;
       private _isDate;
       private _isArray;
+      private _isResolver;
       private _getMappingForNestedKey;
   }
 
@@ -217,7 +289,11 @@ declare module 'automapper-nartc/types' {
       /**
        * when `opts.mapWith()` is used on `forMember()`
        */
-      MapWith = 5
+      MapWith = 4,
+      /**
+       * when `opts.convertUsing()` is used on `forMember()`
+       */
+      ConvertUsing = 5
   }
   /**
    * A new-able type
@@ -225,32 +301,73 @@ declare module 'automapper-nartc/types' {
   export type Constructable<T extends {
       [key in keyof T]: any;
   } = any> = new (...args: any[]) => T;
-  export type MapFromCallback<TSource extends {
+  export interface Converter<TSource, TDestination> {
+      convert(source: TSource): TDestination;
+  }
+  export interface Resolver<TSource extends {
+      [key in keyof TSource]: any;
+  } = any, TDestination extends {
+      [key in keyof TDestination]: any;
+  } = any, K extends keyof TDestination = never> {
+      resolve(source: TSource, destination: TDestination, transformation: MappingTransformation<TSource, TDestination>): K;
+  }
+  /**
+   * Value Selector from a source type
+   *
+   * @example
+   *
+   * ```ts
+   * source => source.foo.bar
+   * ```
+   */
+  export type ValueSelector<TSource extends {
       [key in keyof TSource]: any;
   } = any, TDestination extends {
       [key in keyof TDestination]: any;
   } = any, K extends keyof TDestination = never> = (source: TSource) => TDestination[K];
-  export type ConditionPredicate<TSource extends {
-      [key in keyof TSource]: any;
-  }> = (source: TSource) => boolean;
-  export interface SourceMemberConfigOptions<TSource extends {
+  export type MapFromCallback<TSource extends {
       [key in keyof TSource]: any;
   } = any, TDestination extends {
       [key in keyof TDestination]: any;
-  } = any> {
-      ignore(): void;
-  }
+  } = any, K extends keyof TDestination = never> = ValueSelector<TSource, TDestination, K> | Resolver<TSource, TDestination, K>;
+  /**
+   * Condition Predicate from a source
+   */
+  export type ConditionPredicate<TSource extends {
+      [key in keyof TSource]: any;
+  }> = (source: TSource) => boolean;
+  /**
+   * Options for mapWith
+   */
+  export type MapWithOptions<TSource extends {
+      [key in keyof TSource]: any;
+  } = any, TDestination extends {
+      [key in keyof TDestination]: any;
+  } = any> = {
+      destination: Constructable<Unpacked<TDestination[keyof TDestination]>>;
+      value: ValueSelector<TSource>;
+  };
+  export type ConvertUsingOptions<TSource extends {
+      [key in keyof TSource]: any;
+  } = any, TDestination extends {
+      [key in keyof TDestination]: any;
+  } = any> = {
+      converter: Converter<TSource[keyof TSource], TDestination[keyof TDestination]>;
+      value?: (source: TSource) => TSource[keyof TSource];
+  };
   export interface DestinationMemberConfigOptions<TSource extends {
       [key in keyof TSource]: any;
   } = any, TDestination extends {
       [key in keyof TDestination]: any;
-  } = any, K extends keyof TDestination = never> extends SourceMemberConfigOptions<TSource, TDestination> {
+  } = any, K extends keyof TDestination = never> {
       mapFrom(cb: MapFromCallback<TSource, TDestination, K>): void;
-      mapWith(destination: Constructable<Unpacked<TDestination[K]>>): void;
+      mapWith(destination: Constructable<Unpacked<TDestination[K]>>, value: ValueSelector<TSource>): void;
       condition(predicate: ConditionPredicate<TSource>): void;
       fromValue(value: TDestination[K]): void;
+      ignore(): void;
+      convertUsing<TConvertSource extends TSource[keyof TSource], TConvertDestination extends TDestination[K]>(converter: Converter<TConvertSource, TConvertDestination>, value?: (source: TSource) => TConvertSource): void;
   }
-  export interface ForMemberFunction<TSource extends {
+  export interface ForMemberExpression<TSource extends {
       [key in keyof TSource]: any;
   } = any, TDestination extends {
       [key in keyof TDestination]: any;
@@ -265,14 +382,14 @@ declare module 'automapper-nartc/types' {
   } = any, TSource extends {
       [key in keyof TSource]: any;
   } = any> {
-      forPath<K extends keyof TSource>(destination: ForPathDestinationFn<TSource>, forPathFn: ForMemberFunction<TDestination, TSource, K>): CreateReverseMapFluentFunctions<TDestination, TSource>;
+      forPath<K extends keyof TSource>(destination: ForPathDestinationFn<TSource>, forPathFn: ForMemberExpression<TDestination, TSource, K>): CreateReverseMapFluentFunctions<TDestination, TSource>;
   }
   export interface CreateMapFluentFunctions<TSource extends {
       [key in keyof TSource]: any;
   } = any, TDestination extends {
       [key in keyof TDestination]: any;
   } = any> {
-      forMember<K extends keyof TDestination>(destinationKey: K, forMemberFn: ForMemberFunction<TSource, TDestination, K>): CreateMapFluentFunctions<TSource, TDestination>;
+      forMember<K extends keyof TDestination>(key: K, expression: ForMemberExpression<TSource, TDestination, K>): CreateMapFluentFunctions<TSource, TDestination>;
       reverseMap(): CreateReverseMapFluentFunctions<TDestination, TSource>;
   }
   export interface Configuration {
@@ -285,10 +402,11 @@ declare module 'automapper-nartc/types' {
       [key in keyof TDestination]: any;
   } = any> {
       transformationType: TransformationType;
-      mapFrom: (source: TSource) => ReturnType<MapFromCallback<TSource, TDestination>>;
-      mapWith: Constructable<Unpacked<TDestination[keyof TDestination]>>;
+      mapFrom: MapFromCallback<TSource, TDestination>;
+      mapWith: MapWithOptions<TSource, TDestination>;
       condition: ConditionPredicate<TSource>;
       fromValue: TDestination[keyof TDestination];
+      convertUsing: ConvertUsingOptions<TSource, TDestination>;
   }
   export interface MappingProperty<TSource extends {
       [key in keyof TSource]: any;
