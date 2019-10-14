@@ -4,15 +4,16 @@ import {
   ConditionPredicate,
   Configuration,
   Constructable,
+  ConvertUsingOptions,
   CreateMapFluentFunctions,
   CreateReverseMapFluentFunctions,
   DestinationMemberConfigOptions,
-  ForMemberFunction,
-  MapFromCallback,
+  ForMemberExpression,
   Mapping,
   MappingProfile,
   MappingProperty,
-  MapWithOptions
+  MapWithOptions,
+  ValueSelector
 } from './types';
 
 /**
@@ -240,14 +241,15 @@ export class AutoMapper extends AutoMapperBase {
   private _createMapForMember<TSource extends {} = any, TDestination extends {} = any>(
     mapping: Mapping<TSource, TDestination>,
     key: keyof TDestination,
-    fn: ForMemberFunction<TSource, TDestination>,
+    fn: ForMemberExpression<TSource, TDestination>,
     fluentFunctions: CreateMapFluentFunctions<TSource, TDestination>
   ): CreateMapFluentFunctions<TSource, TDestination> {
     const transformationType = super.getTransformationType(fn);
-    let mapFrom: MapFromCallback<TSource, TDestination>;
+    let mapFrom: ValueSelector<TSource, TDestination>;
     let condition: ConditionPredicate<TSource>;
     let fromValue: TDestination[keyof TDestination];
     let mapWith: MapWithOptions<TSource, TDestination>;
+    let convertUsing: ConvertUsingOptions<TSource, TDestination>;
 
     const opts: DestinationMemberConfigOptions<TSource, TDestination> = {
       mapFrom: cb => {
@@ -264,6 +266,9 @@ export class AutoMapper extends AutoMapperBase {
       },
       fromValue: value => {
         fromValue = value;
+      },
+      convertUsing: (formatter, value) => {
+        convertUsing = { formatter, value };
       }
     };
 
@@ -280,7 +285,9 @@ export class AutoMapper extends AutoMapperBase {
         // @ts-ignore
         fromValue,
         // @ts-ignore
-        mapWith
+        mapWith,
+        // @ts-ignore
+        convertUsing
       }
     };
 
@@ -312,15 +319,16 @@ export class AutoMapper extends AutoMapperBase {
   private _createMapForPath<TDestination extends {} = any, TSource extends {} = any>(
     mapping: Mapping<TDestination, TSource>,
     key: keyof TSource,
-    fn: ForMemberFunction<TDestination, TSource>,
+    fn: ForMemberExpression<TDestination, TSource>,
     fluentFunctions: CreateReverseMapFluentFunctions<TDestination, TSource>
   ): CreateReverseMapFluentFunctions<TDestination, TSource> {
     const transformationType = super.getTransformationType(fn);
 
-    let mapFrom: MapFromCallback<TDestination, TSource>;
+    let mapFrom: ValueSelector<TDestination, TSource>;
     let condition: ConditionPredicate<TDestination>;
     let fromValue: TSource[keyof TSource];
     let mapWith: MapWithOptions<TDestination, TSource>;
+    let convertUsing: ConvertUsingOptions<TDestination, TSource>;
 
     const opts: DestinationMemberConfigOptions<TDestination, TSource> = {
       mapFrom: cb => {
@@ -337,6 +345,9 @@ export class AutoMapper extends AutoMapperBase {
       },
       fromValue: value => {
         fromValue = value;
+      },
+      convertUsing: (formatter, value) => {
+        convertUsing = { formatter, value };
       }
     };
 
@@ -353,7 +364,9 @@ export class AutoMapper extends AutoMapperBase {
         // @ts-ignore
         fromValue,
         // @ts-ignore
-        mapWith
+        mapWith,
+        // @ts-ignore
+        convertUsing
       }
     };
 

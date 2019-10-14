@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 import 'reflect-metadata';
-import { AutoMapper, ExposedType, Mapper, MappingProfileBase } from '../src';
+import { AutoMapper, ExposedType, Formatter, Mapper, MappingProfileBase } from '../src';
 
 class User {
   @Expose()
@@ -57,6 +57,8 @@ class Nested {
   foobaz!: boolean;
   @Expose()
   foobarbar!: number;
+  @Expose()
+  foofoobarbar!: string;
 }
 
 class NestedVm {
@@ -68,6 +70,20 @@ class NestedVm {
   bazfoo!: boolean;
   @Expose()
   barbarfoo!: number;
+  @Expose()
+  barbarfoofoo!: Date;
+}
+
+class DateFormatter implements Formatter<string, Date> {
+  convert(source: string): Date {
+    return new Date(source);
+  }
+}
+
+class StringFormatter implements Formatter<Date, string> {
+  convert(source: Date): string {
+    return source.toISOString();
+  }
 }
 
 class AddressProfile extends MappingProfileBase {
@@ -161,10 +177,17 @@ describe('automapper-nartc: mapping', () => {
         .forMember('barfoo', opts => opts.ignore())
         .forMember('bazfoo', opts => opts.fromValue(false))
         .forMember('barbarfoo', opts => opts.condition(s => s.foobaz))
+        .forMember('barbarfoofoo', opts =>
+          opts.convertUsing(new DateFormatter(), source => source.foofoobarbar)
+        )
         .reverseMap()
         .forPath(s => s.foobarbar, opts => opts.ignore())
         .forPath(s => s.foobar, opts => opts.condition(d => d.bazfoo))
-        .forPath(s => s.foobaz, opts => opts.fromValue(true));
+        .forPath(s => s.foobaz, opts => opts.fromValue(true))
+        .forPath(
+          s => s.foofoobarbar,
+          opts => opts.convertUsing(new StringFormatter(), source => source.barbarfoofoo)
+        );
       cfg
         .createMap(User, UserVm)
         .forMember('fullName', opts => opts.mapFrom(s => s.firstName + ' ' + s.lastName))

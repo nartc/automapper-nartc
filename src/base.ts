@@ -4,7 +4,7 @@ import isEmpty from 'lodash.isempty';
 import lowerCase from 'lodash.lowercase';
 import {
   Constructable,
-  ForMemberFunction,
+  ForMemberExpression,
   ForPathDestinationFn,
   Mapping,
   TransformationType
@@ -20,7 +20,7 @@ export abstract class AutoMapperBase {
   protected getTransformationType<
     TSource extends { [key in keyof TSource]: any } = any,
     TDestination extends {} = any
-  >(forMemberFn: ForMemberFunction<TSource, TDestination>): TransformationType {
+  >(forMemberFn: ForMemberExpression<TSource, TDestination>): TransformationType {
     const fnString = forMemberFn.toString();
     if (fnString.includes('ignore')) {
       return TransformationType.Ignore;
@@ -38,6 +38,10 @@ export abstract class AutoMapperBase {
       return TransformationType.MapWith;
     }
 
+    if (fnString.includes('convertUsing')) {
+      return TransformationType.ConvertUsing;
+    }
+
     return TransformationType.MapFrom;
   }
 
@@ -52,7 +56,10 @@ export abstract class AutoMapperBase {
     TSource extends { [key in keyof TSource]: any } = any,
     TDestination extends { [key in keyof TDestination]: any } = any
   >(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): TDestination {
-    sourceObj = plainToClass(mapping.source, sourceObj, { strategy: 'exposeAll' });
+    sourceObj = plainToClass(mapping.source, sourceObj, {
+      strategy: 'exposeAll',
+      excludeExtraneousValues: true
+    });
     const { destination, properties } = mapping;
     const destinationObj = plainToClass(destination, new destination(), { strategy: 'exposeAll' });
     const configProps = [...properties.keys()];
@@ -170,6 +177,25 @@ export abstract class AutoMapperBase {
         }
 
         destinationObj[prop.destinationKey] = this._map(_source, _mapping as Mapping);
+        continue;
+      }
+
+      if (prop.transformation.transformationType === TransformationType.ConvertUsing) {
+        const { formatter, value } = prop.transformation.convertUsing;
+        if (value == null) {
+          const _source = (sourceObj as any)[prop.destinationKey];
+
+          if (_source == null) {
+            console.warn(`${prop.destinationKey} does not exist on ${mapping.source}`);
+            destinationObj[prop.destinationKey] = null as any;
+            continue;
+          }
+
+          destinationObj[prop.destinationKey] = formatter.convert(_source);
+          continue;
+        }
+
+        destinationObj[prop.destinationKey] = formatter.convert(value(sourceObj));
         continue;
       }
 
