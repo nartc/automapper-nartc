@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 import 'reflect-metadata';
-import { AutoMapper, ExposedType, Formatter, Mapper, MappingProfileBase } from '../src';
+import { AutoMapper, ExposedType, Converter, Mapper, MappingProfileBase } from '../src';
 
 class User {
   @Expose()
@@ -74,13 +74,13 @@ class NestedVm {
   barbarfoofoo!: Date;
 }
 
-class DateFormatter implements Formatter<string, Date> {
+class DateFormatter implements Converter<string, Date> {
   convert(source: string): Date {
     return new Date(source);
   }
 }
 
-class StringFormatter implements Formatter<Date, string> {
+class StringFormatter implements Converter<Date, string> {
   convert(source: Date): string {
     return source.toISOString();
   }

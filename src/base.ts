@@ -6,8 +6,11 @@ import {
   Constructable,
   ForMemberExpression,
   ForPathDestinationFn,
+  MapFromCallback,
   Mapping,
-  TransformationType
+  Resolver,
+  TransformationType,
+  ValueSelector
 } from './types';
 
 export abstract class AutoMapperBase {
@@ -181,7 +184,7 @@ export abstract class AutoMapperBase {
       }
 
       if (prop.transformation.transformationType === TransformationType.ConvertUsing) {
-        const { formatter, value } = prop.transformation.convertUsing;
+        const { converter, value } = prop.transformation.convertUsing;
         if (value == null) {
           const _source = (sourceObj as any)[prop.destinationKey];
 
@@ -191,20 +194,45 @@ export abstract class AutoMapperBase {
             continue;
           }
 
-          destinationObj[prop.destinationKey] = formatter.convert(_source);
+          destinationObj[prop.destinationKey] = converter.convert(_source);
           continue;
         }
 
-        destinationObj[prop.destinationKey] = formatter.convert(value(sourceObj));
+        destinationObj[prop.destinationKey] = converter.convert(value(sourceObj));
         continue;
       }
 
-      destinationObj[prop.destinationKey] = prop.transformation.mapFrom(sourceObj);
+      if (this._isResolver(prop.transformation.mapFrom)) {
+        destinationObj[prop.destinationKey] = prop.transformation.mapFrom.resolve(
+          sourceObj,
+          destinationObj,
+          prop.transformation
+        );
+        continue;
+      }
+
+      destinationObj[prop.destinationKey] = (prop.transformation.mapFrom as ValueSelector)(
+        sourceObj
+      );
     }
 
     this._assertMappingErrors(destinationObj, propKeys);
 
     return destinationObj;
+  }
+
+  protected _mapAsync<
+    TSource extends { [key in keyof TSource]: any } = any,
+    TDestination extends { [key in keyof TDestination]: any } = any
+  >(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): Promise<TDestination> {
+    return Promise.resolve().then(() => this._map(sourceObj, mapping));
+  }
+
+  protected _mapArrayAsync<
+    TSource extends { [key in keyof TSource]: any } = any,
+    TDestination extends { [key in keyof TDestination]: any } = any
+  >(sourceArray: TSource[], mapping: Mapping<TSource, TDestination>): Promise<TDestination[]> {
+    return Promise.resolve().then(() => sourceArray.map(s => this._map(s, mapping)));
   }
 
   private _assertMappingErrors<T extends { [key in keyof T]: any } = any>(
@@ -384,6 +412,10 @@ export abstract class AutoMapperBase {
 
   private _isArray<TSource>(fn: Constructable<TSource>): boolean {
     return Array.isArray(fn) && Object.prototype.toString.call(fn) === '[object Array]';
+  }
+
+  private _isResolver<TSource>(fn: MapFromCallback<TSource>): fn is Resolver {
+    return 'resolve' in fn;
   }
 
   private _getMappingForNestedKey<TSource, TDestination>(

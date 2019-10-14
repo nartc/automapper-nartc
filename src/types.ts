@@ -40,8 +40,20 @@ export enum TransformationType {
  */
 export type Constructable<T extends { [key in keyof T]: any } = any> = new (...args: any[]) => T;
 
-export interface Formatter<TSource, TDestination> {
+export interface Converter<TSource, TDestination> {
   convert(source: TSource): TDestination;
+}
+
+export interface Resolver<
+  TSource extends { [key in keyof TSource]: any } = any,
+  TDestination extends { [key in keyof TDestination]: any } = any,
+  K extends keyof TDestination = never
+> {
+  resolve(
+    source: TSource,
+    destination: TDestination,
+    transformation: MappingTransformation<TSource, TDestination>
+  ): K;
 }
 
 /**
@@ -58,6 +70,12 @@ export type ValueSelector<
   TDestination extends { [key in keyof TDestination]: any } = any,
   K extends keyof TDestination = never
 > = (source: TSource) => TDestination[K];
+
+export type MapFromCallback<
+  TSource extends { [key in keyof TSource]: any } = any,
+  TDestination extends { [key in keyof TDestination]: any } = any,
+  K extends keyof TDestination = never
+> = ValueSelector<TSource, TDestination, K> | Resolver<TSource, TDestination, K>;
 
 /**
  * Condition Predicate from a source
@@ -81,7 +99,7 @@ export type ConvertUsingOptions<
   TSource extends { [key in keyof TSource]: any } = any,
   TDestination extends { [key in keyof TDestination]: any } = any
 > = {
-  formatter: Formatter<TSource[keyof TSource], TDestination[keyof TDestination]>;
+  converter: Converter<TSource[keyof TSource], TDestination[keyof TDestination]>;
   value?: (source: TSource) => TSource[keyof TSource];
 };
 
@@ -90,7 +108,7 @@ export interface DestinationMemberConfigOptions<
   TDestination extends { [key in keyof TDestination]: any } = any,
   K extends keyof TDestination = never
 > {
-  mapFrom(cb: ValueSelector<TSource, TDestination, K>): void;
+  mapFrom(cb: MapFromCallback<TSource, TDestination, K>): void;
 
   mapWith(
     destination: Constructable<Unpacked<TDestination[K]>>,
@@ -107,7 +125,7 @@ export interface DestinationMemberConfigOptions<
     TConvertSource extends TSource[keyof TSource],
     TConvertDestination extends TDestination[K]
   >(
-    formatter: Formatter<TConvertSource, TConvertDestination>,
+    converter: Converter<TConvertSource, TConvertDestination>,
     value?: (source: TSource) => TConvertSource
   ): void;
 }
@@ -160,7 +178,7 @@ export interface MappingTransformation<
   TDestination extends { [key in keyof TDestination]: any } = any
 > {
   transformationType: TransformationType;
-  mapFrom: (source: TSource) => ReturnType<ValueSelector<TSource, TDestination>>;
+  mapFrom: MapFromCallback<TSource, TDestination>;
   mapWith: MapWithOptions<TSource, TDestination>;
   condition: ConditionPredicate<TSource>;
   fromValue: TDestination[keyof TDestination];

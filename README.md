@@ -22,17 +22,22 @@ So far, the following is supported:
 - [x] Array/List Mapping
 - [x] Flattening
 - [x] ReverseMap - Very basic `reverseMapping` feature. Use for primitives models only if you can.
+- [x] Value Converters
+- [x] Value Resolvers
+- [x] Async
 
 **NOTE: Please be advised that the current state of this library is for learning purposes and I'd appreciate any help/guides. Everything is still in beta and DO NOT USE in production.**
 
 #### Future features:
 
-- [ ] Type Converters
-- [ ] Value Resolvers
-- [ ] Value Converters ?
-- [ ] Value Transformers ?
-- [ ] Null Substitution
+- [ ] Type Converters - Help needed
+- [ ] Value Transformers
 - [ ] Naming Conventions
+- [ ] Before/After Callback
+
+#### Will not support:
+
+- [x] Null Substitution - It makes more sense to use `fromValue()` instead of implement `nullSubstitution()`. Please let me know of a use-case where `nullSubstitution()` makes sense.
 
 Contributions are appreciated.
 

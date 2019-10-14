@@ -9,11 +9,11 @@ import {
   CreateReverseMapFluentFunctions,
   DestinationMemberConfigOptions,
   ForMemberExpression,
+  MapFromCallback,
   Mapping,
   MappingProfile,
   MappingProperty,
-  MapWithOptions,
-  ValueSelector
+  MapWithOptions
 } from './types';
 
 /**
@@ -121,16 +121,68 @@ export class AutoMapper extends AutoMapperBase {
   public map<TSource extends {} = any, TDestination extends {} = any>(
     sourceObj: TSource,
     ...args: Constructable<TSource | TDestination>[]
-  ) {
+  ): TDestination {
     if (args.length === 2) {
       const mapping = super._getMapping(args[0] as Constructable<TSource>, args[1]);
-      return super._map(sourceObj, mapping);
+      return super._map(sourceObj, mapping) as TDestination;
     }
 
     const mapping = super._getMappingForDestination<TSource, TDestination>(args[0] as Constructable<
       TDestination
     >);
     return super._map(sourceObj, mapping);
+  }
+
+  /**
+   * Map from Source to Destination Async. Mapping operation will be run as a micro task.
+   *
+   * @example
+   *
+   *
+   * ```ts
+   * const user = new User();
+   * user.firstName = 'John';
+   * user.lastName = 'Doe';
+   *
+   * const userVm = await Mapper.mapAsync(user, UserVm);
+   * ```
+   *
+   * @param {TSource} sourceObj - the sourceObj that are going to be mapped
+   * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
+   *   values
+   *
+   * @returns {Promise<TDestination>} Promise that resolves TDestination
+   */
+  public mapAsync<TSource extends {} = any, TDestination extends {} = any>(
+    sourceObj: TSource,
+    destination: Constructable<TDestination>
+  ): Promise<TDestination>;
+  /**
+   * Map from Source to Destination async
+   *
+   * @param {TSource} sourceObj - the sourceObj that are going to be mapped
+   * @param {Constructable<TSource>} source - the Source model
+   * @param {Constructable<TDestination>} destination - the Destination model
+   * @returns {Promise<TDestination>} Promise that resolves TDestination
+   */
+  public mapAsync<TSource extends {} = any, TDestination extends {} = any>(
+    sourceObj: TSource,
+    source: Constructable<TSource>,
+    destination: Constructable<TDestination>
+  ): Promise<TDestination>;
+  public mapAsync<TSource extends {} = any, TDestination extends {} = any>(
+    sourceObj: TSource,
+    ...args: Constructable<TSource | TDestination>[]
+  ): Promise<TDestination> {
+    if (args.length === 2) {
+      const mapping = super._getMapping(args[0] as Constructable<TSource>, args[1]);
+      return super._mapAsync(sourceObj, mapping) as Promise<TDestination>;
+    }
+
+    const mapping = super._getMappingForDestination<TSource, TDestination>(args[0] as Constructable<
+      TDestination
+    >);
+    return super._mapAsync(sourceObj, mapping);
   }
 
   /**
@@ -182,6 +234,62 @@ export class AutoMapper extends AutoMapperBase {
       TDestination
     >);
     return super._mapArray(sourceObj, mapping);
+  }
+
+  /**
+   * Map from a list of Source to a list of Destination async. Mapping operation will be run as a
+   * micro task.
+   *
+   * @example
+   *
+   *
+   * ```ts
+   * const addresses = [];
+   * addresses.push(new Address(), new Address());
+   *
+   * const addressesVm = await Mapper.mapArrayAsync(addresses, AddressVm);
+   * ```
+   *
+   * @param {TSource} sourceObj - the sourceObj that are going to be mapped
+   * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
+   *   values
+   *
+   * @returns {Promise<TDestination[]>>} Promise that resolves a TDestination[]
+   */
+  public mapArrayAsync<TSource extends {} = any, TDestination extends {} = any>(
+    sourceObj: TSource[],
+    destination: Constructable<TDestination>
+  ): Promise<TDestination[]>;
+  /**
+   * Map from a list of Source to a list of Destination async.
+   *
+   * @param {TSource} sourceObj - the sourceObj that are going to be mapped
+   * @param {Constructable<TSource>} source - the Source model
+   * @param {Constructable<TDestination>} destination - the Destination model
+   *
+   * @returns {Promise<TDestination[]>>} Promise that resolves a TDestination[]
+   */
+  public mapArrayAsync<TSource extends {} = any, TDestination extends {} = any>(
+    sourceObj: TSource[],
+    source: Constructable<TSource>,
+    destination: Constructable<TDestination>
+  ): Promise<TDestination[]>;
+  public mapArrayAsync<TSource extends {} = any, TDestination extends {} = any>(
+    sourceObj: TSource[],
+    ...args: Constructable<TSource | TDestination>[]
+  ): Promise<TDestination[]> {
+    if (args.length === 2) {
+      const mapping = super._getMapping(
+        args[0] as Constructable<TSource>,
+        args[1] as Constructable<TDestination>
+      );
+      return super._mapArrayAsync(sourceObj, mapping);
+    }
+
+    const mapping = super._getMappingForDestination<TSource, TDestination>(args[0] as Constructable<
+      TDestination
+    >);
+    return super._mapArrayAsync(sourceObj, mapping);
   }
 
   /**
@@ -245,7 +353,7 @@ export class AutoMapper extends AutoMapperBase {
     fluentFunctions: CreateMapFluentFunctions<TSource, TDestination>
   ): CreateMapFluentFunctions<TSource, TDestination> {
     const transformationType = super.getTransformationType(fn);
-    let mapFrom: ValueSelector<TSource, TDestination>;
+    let mapFrom: MapFromCallback<TSource, TDestination>;
     let condition: ConditionPredicate<TSource>;
     let fromValue: TDestination[keyof TDestination];
     let mapWith: MapWithOptions<TSource, TDestination>;
@@ -267,8 +375,8 @@ export class AutoMapper extends AutoMapperBase {
       fromValue: value => {
         fromValue = value;
       },
-      convertUsing: (formatter, value) => {
-        convertUsing = { formatter, value };
+      convertUsing: (converter, value) => {
+        convertUsing = { converter, value };
       }
     };
 
@@ -324,7 +432,7 @@ export class AutoMapper extends AutoMapperBase {
   ): CreateReverseMapFluentFunctions<TDestination, TSource> {
     const transformationType = super.getTransformationType(fn);
 
-    let mapFrom: ValueSelector<TDestination, TSource>;
+    let mapFrom: MapFromCallback<TDestination, TSource>;
     let condition: ConditionPredicate<TDestination>;
     let fromValue: TSource[keyof TSource];
     let mapWith: MapWithOptions<TDestination, TSource>;
@@ -346,8 +454,8 @@ export class AutoMapper extends AutoMapperBase {
       fromValue: value => {
         fromValue = value;
       },
-      convertUsing: (formatter, value) => {
-        convertUsing = { formatter, value };
+      convertUsing: (converter, value) => {
+        convertUsing = { converter, value };
       }
     };
 
