@@ -1,6 +1,5 @@
 import 'reflect-metadata';
-import { AutoMapper, Converter, Mapper, MappingProfileBase } from '../src';
-import { Mappable, MappableType } from '../src/utils/class-transformers/class-transformers';
+import { AutoMapper, Converter, Mappable, MappableType, Mapper, MappingProfileBase } from '../src';
 
 class User {
   @Mappable()
