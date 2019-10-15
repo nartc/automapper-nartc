@@ -1,3 +1,4 @@
+import { Expose, ExposeOptions, Type, TypeHelpOptions, TypeOptions } from 'class-transformer';
 import { AutoMapperBase } from './base';
 import {
   ConditionPredicate,
@@ -15,7 +16,6 @@ import {
   MappingProperty,
   MapWithOptions
 } from './types';
-import { MappableType } from './utils/class-transformers';
 
 /**
  * Combined Expose and Type from class-transformer
@@ -23,14 +23,14 @@ import { MappableType } from './utils/class-transformers';
  * @param {(type?: TypeHelpOptions) => Function} typeFn
  * @param {ExposeOptions} exposeOptions
  * @param {TypeOptions} typeOptions
- *
- * @deprecated Please use MappableType instead
  */
-export const ExposedType = (typeFn: () => Function): PropertyDecorator => (
-  target: any,
-  propertyKey
-) => {
-  MappableType(typeFn)(target, propertyKey as string);
+export const ExposedType = (
+  typeFn: (type?: TypeHelpOptions) => Function,
+  exposeOptions?: ExposeOptions,
+  typeOptions?: TypeOptions
+): PropertyDecorator => (target: any, propertyKey) => {
+  Expose(exposeOptions)(target, propertyKey as string);
+  Type(typeFn, typeOptions)(target, propertyKey as string);
 };
 
 export class AutoMapper extends AutoMapperBase {
