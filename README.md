@@ -25,6 +25,7 @@ So far, the following is supported:
 - [x] Value Converters
 - [x] Value Resolvers
 - [x] Async
+- [x] Before/After Callback
 
 **NOTE: Please be advised that the current state of this library is for learning purposes and I'd appreciate any help/guides. Everything is still in beta and DO NOT USE in production.**
 
@@ -33,7 +34,6 @@ So far, the following is supported:
 - [ ] Type Converters - Help needed
 - [ ] Value Transformers
 - [ ] Naming Conventions
-- [ ] Before/After Callback
 
 #### Will not support:
 
@@ -222,10 +222,7 @@ Mapper.initialize(config => {
 });
 ```
 
-5. When you're ready to map, call `Mapper.map()`. `map()` has two overloads:
-
-- `map(sourceObj, destination)`
-- `map(sourceObj, source, destination)`
+5. When you're ready to map, call `Mapper.map()`.
 
 ```typescript
 const userVm = Mapper.map(user, UserVm); // this will return an instance of UserVm and assign it to userVm with all the fields assigned properly from User
@@ -233,7 +230,7 @@ const userVm = Mapper.map(user, UserVm); // this will return an instance of User
 console.log('instance of UserVm?', userVm instanceof UserVm); // true
 ```
 
-6. Use `Mapper.mapArray()` if you want to map from `TSource[]` to `TDestination[]`. `mapArray()` has the same overloads as `map()`
+6. Use `Mapper.mapArray()` if you want to map from `TSource[]` to `TDestination[]`.
 
 ## Demo
 
