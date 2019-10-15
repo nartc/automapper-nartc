@@ -51,7 +51,7 @@ I have plans in the near future to update how `forMember()` method works in term
 npm install --save automapper-nartc
 ```
 
-**NOTE: `automapper-nartc` depends on `class-transformer` and `reflect-metadata`. `class-transformer` and `reflect-metadata` will also be installed when you install this library. Please also turn on `experimentalDecorators` and `emitDecoratorMetadata` in your `tsconfig` **
+**NOTE: `automapper-nartc` has a `peerDependency` of `reflect-metadata`. Please also turn on `experimentalDecorators` and `emitDecoratorMetadata` in your `tsconfig` **
 
 ## Usage
 
@@ -101,7 +101,7 @@ class UserVm {
 }
 ```
 
-3. Decorate all of your properties with `@Expose()`. `@Expose` is imported from `class-transformer`. This will allow the engine to be aware of all the properties available in a certain **class**.
+3. Decorate all of your properties with `@Mappable()`. This will allow the engine to be aware of all the properties available in a certain **class**.
 
 ```typescript
 class User {

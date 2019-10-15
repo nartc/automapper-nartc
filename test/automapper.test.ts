@@ -1,76 +1,76 @@
-import { Expose } from 'class-transformer';
 import 'reflect-metadata';
-import { AutoMapper, ExposedType, Converter, Mapper, MappingProfileBase } from '../src';
+import { AutoMapper, Converter, Mapper, MappingProfileBase } from '../src';
+import { Mappable, MappableType } from '../src/utils/class-transformers/class-transformers';
 
 class User {
-  @Expose()
+  @Mappable()
   firstName!: string;
-  @Expose()
+  @Mappable()
   lastName!: string;
-  @ExposedType(() => Nested)
+  @MappableType(() => Nested)
   nested!: Nested;
 }
 
 class UserVm {
-  @Expose()
+  @Mappable()
   firstName!: string;
-  @Expose()
+  @Mappable()
   lastName!: string;
-  @Expose()
+  @Mappable()
   fullName!: string;
-  @ExposedType(() => NestedVm)
+  @MappableType(() => NestedVm)
   nested!: NestedVm;
 }
 
 class Address {
-  @Expose()
+  @Mappable()
   street!: string;
-  @Expose()
+  @Mappable()
   city!: string;
-  @Expose()
+  @Mappable()
   state!: string;
 }
 
 class AddressVm {
-  @Expose()
+  @Mappable()
   addressString!: string;
 }
 
 class Profile {
-  @Expose()
+  @Mappable()
   bio!: string;
-  @Expose()
+  @Mappable()
   avatar!: string;
 }
 
 class ProfileVm {
-  @Expose()
+  @Mappable()
   avatarUrl!: string;
 }
 
 class Nested {
-  @Expose()
+  @Mappable()
   foo!: string;
-  @Expose()
+  @Mappable()
   foobar!: number;
-  @Expose()
+  @Mappable()
   foobaz!: boolean;
-  @Expose()
+  @Mappable()
   foobarbar!: number;
-  @Expose()
+  @Mappable()
   foofoobarbar!: string;
 }
 
 class NestedVm {
-  @Expose()
+  @Mappable()
   bar!: string;
-  @Expose()
+  @Mappable()
   barfoo!: number;
-  @Expose()
+  @Mappable()
   bazfoo!: boolean;
-  @Expose()
+  @Mappable()
   barbarfoo!: number;
-  @Expose()
+  @Mappable()
   barbarfoofoo!: Date;
 }
 

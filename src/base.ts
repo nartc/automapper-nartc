@@ -1,4 +1,3 @@
-import { plainToClass } from 'class-transformer';
 import get from 'lodash.get';
 import isEmpty from 'lodash.isempty';
 import lowerCase from 'lodash.lowercase';
@@ -13,6 +12,7 @@ import {
   TransformationType,
   ValueSelector
 } from './types';
+import { toClass } from './utils/class-transformers';
 
 export abstract class AutoMapperBase {
   protected readonly _mappings!: { [key: string]: Mapping };
@@ -85,13 +85,10 @@ export abstract class AutoMapperBase {
     option: MapActionOptions<TSource, TDestination> = { beforeMap: undefined, afterMap: undefined },
     isArrayMap: boolean = false
   ): TDestination {
-    sourceObj = plainToClass(mapping.source, sourceObj, {
-      strategy: 'exposeAll',
-      excludeExtraneousValues: true
-    });
+    sourceObj = toClass(mapping.source, sourceObj);
     const { beforeMap, afterMap } = option;
     const { destination, properties, afterMapAction, beforeMapAction } = mapping;
-    const destinationObj = plainToClass(destination, new destination(), { strategy: 'exposeAll' });
+    const destinationObj = toClass(destination, new destination());
     const configProps = [...properties.keys()];
 
     const destinationKeys = Object.keys(destinationObj);
@@ -140,6 +137,11 @@ export abstract class AutoMapperBase {
         if (this._isArray(sourceVal)) {
           if (isEmpty(sourceVal[0])) {
             destinationObj[key] = [] as any;
+            continue;
+          }
+
+          if (typeof sourceVal[0] !== 'object') {
+            destinationObj[key] = sourceVal.slice();
             continue;
           }
 

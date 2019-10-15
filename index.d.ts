@@ -1,5 +1,4 @@
 declare module 'automapper-nartc/automapper' {
-  import { ExposeOptions, TypeHelpOptions, TypeOptions } from 'class-transformer';
   import { AutoMapperBase } from 'automapper-nartc/base';
   import { Configuration, Constructable, CreateMapFluentFunctions, MapActionOptions, MappingProfile } from 'automapper-nartc/types';
   /**
@@ -8,8 +7,10 @@ declare module 'automapper-nartc/automapper' {
    * @param {(type?: TypeHelpOptions) => Function} typeFn
    * @param {ExposeOptions} exposeOptions
    * @param {TypeOptions} typeOptions
+   *
+   * @deprecated Please use MappableType instead
    */
-  export const ExposedType: (typeFn: (type?: TypeHelpOptions | undefined) => Function, exposeOptions?: ExposeOptions | undefined, typeOptions?: TypeOptions | undefined) => PropertyDecorator;
+  export const ExposedType: (typeFn: () => Function) => PropertyDecorator;
   export class AutoMapper extends AutoMapperBase {
       private static _instance;
       private readonly _profiles;
@@ -226,6 +227,8 @@ declare module 'automapper-nartc/index' {
   export * from 'automapper-nartc/base';
   export * from 'automapper-nartc/types';
   export * from 'automapper-nartc/automapper';
+  export * from 'automapper-nartc/utils/class-transformers/class-transformers';
+  export * from 'automapper-nartc/utils/class-transformers/class-transformers';
 
 }
 declare module 'automapper-nartc/naming/camel-case-naming-convention' {
@@ -412,6 +415,54 @@ declare module 'automapper-nartc/types' {
       profileName: string;
       configure: (mapper: AutoMapper) => void;
   }
+
+}
+declare module 'automapper-nartc/utils/class-transformers/class-transformers' {
+  import 'reflect-metadata';
+  export const toClass: <T>(targetType: Function, sourceObj: T) => T;
+
+}
+declare module 'automapper-nartc/utils/class-transformers/class-transformers.decorator' {
+  export const Mappable: () => (target: Object | Function, propertyName: string) => void;
+  export const MappableType: (typeFn: () => Function) => (target: any, propertyName: string) => void;
+
+}
+declare module 'automapper-nartc/utils/class-transformers/class-transformers.metadata' {
+  export class MappableMetadata {
+      target: Function;
+      propertyName: string;
+      constructor(target: Function, propertyName: string);
+  }
+  export class MappableTypeMetadata {
+      target: Function;
+      propertyName: string;
+      reflectedType: any;
+      typeFn: () => Function;
+      constructor(target: Function, propertyName: string, reflectedType: any, typeFn: () => Function);
+  }
+  class MetadataStorage {
+      private _typeMetadatas;
+      private _mappableMetadatas;
+      private _ancestorsMap;
+      addTypeMetadata(metadata: MappableTypeMetadata): void;
+      addMappableMetadata(metadata: MappableMetadata): void;
+      findMappableMetadata(target: Function, propertyName: string): MappableMetadata | undefined;
+      findTypeMetadata(target: Function, propertyName: string): MappableTypeMetadata | undefined;
+      findExposedProperties(target: Function): string[];
+      private _findMetadata;
+      private getAncestors;
+  }
+  export const defaultMetadataStorage: MetadataStorage;
+  export {};
+
+}
+declare module 'automapper-nartc/utils/class-transformers/index' {
+  export * from 'automapper-nartc/utils/class-transformers/class-transformers';
+  export * from 'automapper-nartc/utils/class-transformers/class-transformers';
+
+}
+declare module 'automapper-nartc/utils/index' {
+  export * from 'automapper-nartc/utils/class-transformers/index';
 
 }
 declare module 'automapper-nartc' {
