@@ -40,6 +40,20 @@ export enum TransformationType {
  */
 export type Constructable<T extends { [key in keyof T]: any } = any> = new (...args: any[]) => T;
 
+export type MapActionOptions<
+  TSource extends { [key in keyof TSource]: any } = any,
+  TDestination extends { [key in keyof TDestination]: any } = any
+> = {
+  beforeMap?: BeforeAfterMapAction<TSource, TDestination>;
+  afterMap?: BeforeAfterMapAction<TSource, TDestination>;
+};
+
+export type BeforeAfterMapAction<TSource, TDestination> = (
+  source: TSource,
+  destination: TDestination,
+  mapping?: Mapping
+) => void;
+
 export interface Converter<TSource, TDestination> {
   convert(source: TSource): TDestination;
 }
@@ -161,6 +175,14 @@ export interface CreateMapFluentFunctions<
     expression: ForMemberExpression<TSource, TDestination, K>
   ): CreateMapFluentFunctions<TSource, TDestination>;
 
+  beforeMap(
+    action: BeforeAfterMapAction<TSource, TDestination>
+  ): CreateMapFluentFunctions<TSource, TDestination>;
+
+  afterMap(
+    action: BeforeAfterMapAction<TSource, TDestination>
+  ): CreateMapFluentFunctions<TSource, TDestination>;
+
   reverseMap(): CreateReverseMapFluentFunctions<TDestination, TSource>;
 }
 
@@ -202,6 +224,8 @@ export interface Mapping<
   sourceKey: string;
   destinationKey: string;
   properties: Map<keyof TDestination, MappingProperty<TSource, TDestination>>;
+  beforeMapAction?: BeforeAfterMapAction<TSource, TDestination>;
+  afterMapAction?: BeforeAfterMapAction<TSource, TDestination>;
 }
 
 export interface MappingProfile {

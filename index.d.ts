@@ -1,7 +1,7 @@
 declare module 'automapper-nartc/automapper' {
   import { ExposeOptions, TypeHelpOptions, TypeOptions } from 'class-transformer';
   import { AutoMapperBase } from 'automapper-nartc/base';
-  import { Configuration, Constructable, CreateMapFluentFunctions, MappingProfile } from 'automapper-nartc/types';
+  import { Configuration, Constructable, CreateMapFluentFunctions, MapActionOptions, MappingProfile } from 'automapper-nartc/types';
   /**
    * Combined Expose and Type from class-transformer
    *
@@ -50,18 +50,11 @@ declare module 'automapper-nartc/automapper' {
        * ```
        *
        * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-       * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
-       *   values
+       * @param {Constructable<TDestination>} destination - the Destination model to receive the
+       *   mapped values
+       * @param {MapActionOptions<TSource, TDestination>} option - Optional mapping option
        */
-      map<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, destination: Constructable<TDestination>): TDestination;
-      /**
-       * Map from Source to Destination
-       *
-       * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-       * @param {Constructable<TSource>} source - the Source model
-       * @param {Constructable<TDestination>} destination - the Destination model
-       */
-      map<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, source: Constructable<TSource>, destination: Constructable<TDestination>): TDestination;
+      map<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, destination: Constructable<TDestination>, option?: MapActionOptions<TSource, TDestination>): TDestination;
       /**
        * Map from Source to Destination Async. Mapping operation will be run as a micro task.
        *
@@ -77,21 +70,13 @@ declare module 'automapper-nartc/automapper' {
        * ```
        *
        * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-       * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
-       *   values
+       * @param {Constructable<TDestination>} destination - the Destination model to receive the
+       *   mapped values
        *
+       * @param {MapActionOptions<TSource, TDestination>} option - Optional mapping option
        * @returns {Promise<TDestination>} Promise that resolves TDestination
        */
-      mapAsync<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, destination: Constructable<TDestination>): Promise<TDestination>;
-      /**
-       * Map from Source to Destination async
-       *
-       * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-       * @param {Constructable<TSource>} source - the Source model
-       * @param {Constructable<TDestination>} destination - the Destination model
-       * @returns {Promise<TDestination>} Promise that resolves TDestination
-       */
-      mapAsync<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, source: Constructable<TSource>, destination: Constructable<TDestination>): Promise<TDestination>;
+      mapAsync<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource, destination: Constructable<TDestination>, option?: MapActionOptions<TSource, TDestination>): Promise<TDestination>;
       /**
        * Map from a list of Source to a list of Destination
        *
@@ -106,21 +91,14 @@ declare module 'automapper-nartc/automapper' {
        * ```
        *
        * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-       * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
-       *   values
+       * @param {Constructable<TDestination>} destination - the Destination model to receive the
+       *   mapped values
+       * @param {MapActionOptions<TSource, TDestination>} option - Optional mapping option
        */
-      mapArray<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource[], destination: Constructable<TDestination>): TDestination[];
+      mapArray<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource[], destination: Constructable<TDestination>, option?: MapActionOptions<TSource[], TDestination[]>): TDestination[];
       /**
-       * Map from a list of Source to a list of Destination
-       *
-       * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-       * @param {Constructable<TSource>} source - the Source model
-       * @param {Constructable<TDestination>} destination - the Destination model
-       */
-      mapArray<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource[], source: Constructable<TSource>, destination: Constructable<TDestination>): TDestination[];
-      /**
-       * Map from a list of Source to a list of Destination async. Mapping operation will be run as a
-       * micro task.
+       * Map from a list of Source to a list of Destination async. Mapping operation will be run
+       * as a micro task.
        *
        * @example
        *
@@ -133,22 +111,12 @@ declare module 'automapper-nartc/automapper' {
        * ```
        *
        * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-       * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
-       *   values
-       *
+       * @param {Constructable<TDestination>} destination - the Destination model to receive the
+       *   mapped values
+       * @param {MapActionOptions<TSource, TDestination>} option - Optional mapping option
        * @returns {Promise<TDestination[]>>} Promise that resolves a TDestination[]
        */
-      mapArrayAsync<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource[], destination: Constructable<TDestination>): Promise<TDestination[]>;
-      /**
-       * Map from a list of Source to a list of Destination async.
-       *
-       * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-       * @param {Constructable<TSource>} source - the Source model
-       * @param {Constructable<TDestination>} destination - the Destination model
-       *
-       * @returns {Promise<TDestination[]>>} Promise that resolves a TDestination[]
-       */
-      mapArrayAsync<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource[], source: Constructable<TSource>, destination: Constructable<TDestination>): Promise<TDestination[]>;
+      mapArrayAsync<TSource extends {} = any, TDestination extends {} = any>(sourceObj: TSource[], destination: Constructable<TDestination>, option?: MapActionOptions<TSource[], TDestination[]>): Promise<TDestination[]>;
       /**
        * Add MappingProfile to the current instance of AutoMapper
        *
@@ -198,7 +166,7 @@ declare module 'automapper-nartc/automapper' {
 
 }
 declare module 'automapper-nartc/base' {
-  import { Constructable, ForMemberExpression, ForPathDestinationFn, Mapping, TransformationType } from 'automapper-nartc/types';
+  import { Constructable, ForMemberExpression, ForPathDestinationFn, MapActionOptions, Mapping, TransformationType } from 'automapper-nartc/types';
   export abstract class AutoMapperBase {
       protected readonly _mappings: {
           [key: string]: Mapping;
@@ -211,22 +179,22 @@ declare module 'automapper-nartc/base' {
           [key in keyof TSource]: any;
       } = any, TDestination extends {
           [key in keyof TDestination]: any;
-      } = any>(sourceArray: TSource[], mapping: Mapping<TSource, TDestination>): TDestination[];
+      } = any>(sourceArray: TSource[], mapping: Mapping<TSource, TDestination>, option?: MapActionOptions<TSource[], TDestination[]>): TDestination[];
       protected _map<TSource extends {
           [key in keyof TSource]: any;
       } = any, TDestination extends {
           [key in keyof TDestination]: any;
-      } = any>(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): TDestination;
+      } = any>(sourceObj: TSource, mapping: Mapping<TSource, TDestination>, option?: MapActionOptions<TSource, TDestination>, isArrayMap?: boolean): TDestination;
       protected _mapAsync<TSource extends {
           [key in keyof TSource]: any;
       } = any, TDestination extends {
           [key in keyof TDestination]: any;
-      } = any>(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): Promise<TDestination>;
+      } = any>(sourceObj: TSource, mapping: Mapping<TSource, TDestination>, option?: MapActionOptions<TSource, TDestination>): Promise<TDestination>;
       protected _mapArrayAsync<TSource extends {
           [key in keyof TSource]: any;
       } = any, TDestination extends {
           [key in keyof TDestination]: any;
-      } = any>(sourceArray: TSource[], mapping: Mapping<TSource, TDestination>): Promise<TDestination[]>;
+      } = any>(sourceArray: TSource[], mapping: Mapping<TSource, TDestination>, option?: MapActionOptions<TSource[], TDestination[]>): Promise<TDestination[]>;
       private _assertMappingErrors;
       protected _createMappingObject<TSource extends {
           [key in keyof TSource]: any;
@@ -301,6 +269,15 @@ declare module 'automapper-nartc/types' {
   export type Constructable<T extends {
       [key in keyof T]: any;
   } = any> = new (...args: any[]) => T;
+  export type MapActionOptions<TSource extends {
+      [key in keyof TSource]: any;
+  } = any, TDestination extends {
+      [key in keyof TDestination]: any;
+  } = any> = {
+      beforeMap?: BeforeAfterMapAction<TSource, TDestination>;
+      afterMap?: BeforeAfterMapAction<TSource, TDestination>;
+  };
+  export type BeforeAfterMapAction<TSource, TDestination> = (source: TSource, destination: TDestination, mapping?: Mapping) => void;
   export interface Converter<TSource, TDestination> {
       convert(source: TSource): TDestination;
   }
@@ -390,6 +367,8 @@ declare module 'automapper-nartc/types' {
       [key in keyof TDestination]: any;
   } = any> {
       forMember<K extends keyof TDestination>(key: K, expression: ForMemberExpression<TSource, TDestination, K>): CreateMapFluentFunctions<TSource, TDestination>;
+      beforeMap(action: BeforeAfterMapAction<TSource, TDestination>): CreateMapFluentFunctions<TSource, TDestination>;
+      afterMap(action: BeforeAfterMapAction<TSource, TDestination>): CreateMapFluentFunctions<TSource, TDestination>;
       reverseMap(): CreateReverseMapFluentFunctions<TDestination, TSource>;
   }
   export interface Configuration {
@@ -426,6 +405,8 @@ declare module 'automapper-nartc/types' {
       sourceKey: string;
       destinationKey: string;
       properties: Map<keyof TDestination, MappingProperty<TSource, TDestination>>;
+      beforeMapAction?: BeforeAfterMapAction<TSource, TDestination>;
+      afterMapAction?: BeforeAfterMapAction<TSource, TDestination>;
   }
   export interface MappingProfile {
       profileName: string;

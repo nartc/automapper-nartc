@@ -6,6 +6,7 @@ import {
   Constructable,
   ForMemberExpression,
   ForPathDestinationFn,
+  MapActionOptions,
   MapFromCallback,
   Mapping,
   Resolver,
@@ -51,24 +52,57 @@ export abstract class AutoMapperBase {
   protected _mapArray<
     TSource extends { [key in keyof TSource]: any } = any,
     TDestination extends { [key in keyof TDestination]: any } = any
-  >(sourceArray: TSource[], mapping: Mapping<TSource, TDestination>): TDestination[] {
-    return sourceArray.map(s => this._map(s, mapping));
+  >(
+    sourceArray: TSource[],
+    mapping: Mapping<TSource, TDestination>,
+    option: MapActionOptions<TSource[], TDestination[]> = {
+      beforeMap: undefined,
+      afterMap: undefined
+    }
+  ): TDestination[] {
+    const { beforeMap, afterMap } = option;
+
+    if (beforeMap) {
+      beforeMap(sourceArray, [], mapping);
+    }
+
+    const destination = sourceArray.map(s => this._map(s, mapping, {}, true));
+
+    if (afterMap) {
+      afterMap(sourceArray, destination, mapping);
+    }
+
+    return destination;
   }
 
   protected _map<
     TSource extends { [key in keyof TSource]: any } = any,
     TDestination extends { [key in keyof TDestination]: any } = any
-  >(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): TDestination {
+  >(
+    sourceObj: TSource,
+    mapping: Mapping<TSource, TDestination>,
+    option: MapActionOptions<TSource, TDestination> = { beforeMap: undefined, afterMap: undefined },
+    isArrayMap: boolean = false
+  ): TDestination {
     sourceObj = plainToClass(mapping.source, sourceObj, {
       strategy: 'exposeAll',
       excludeExtraneousValues: true
     });
-    const { destination, properties } = mapping;
+    const { beforeMap, afterMap } = option;
+    const { destination, properties, afterMapAction, beforeMapAction } = mapping;
     const destinationObj = plainToClass(destination, new destination(), { strategy: 'exposeAll' });
     const configProps = [...properties.keys()];
 
     const destinationKeys = Object.keys(destinationObj);
     const destinationKeysLen = destinationKeys.length;
+
+    if (!isArrayMap) {
+      if (beforeMap) {
+        beforeMap(sourceObj, destinationObj, mapping);
+      } else if (beforeMapAction) {
+        beforeMapAction(sourceObj, destinationObj, mapping);
+      }
+    }
 
     for (let i = 0; i < destinationKeysLen; i++) {
       const key = destinationKeys[i] as keyof TDestination;
@@ -218,21 +252,43 @@ export abstract class AutoMapperBase {
 
     this._assertMappingErrors(destinationObj, propKeys);
 
+    if (!isArrayMap) {
+      if (afterMap) {
+        afterMap(sourceObj, destinationObj, mapping);
+      } else if (afterMapAction) {
+        afterMapAction(sourceObj, destinationObj, mapping);
+      }
+    }
+
     return destinationObj;
   }
 
   protected _mapAsync<
     TSource extends { [key in keyof TSource]: any } = any,
     TDestination extends { [key in keyof TDestination]: any } = any
-  >(sourceObj: TSource, mapping: Mapping<TSource, TDestination>): Promise<TDestination> {
-    return Promise.resolve().then(() => this._map(sourceObj, mapping));
+  >(
+    sourceObj: TSource,
+    mapping: Mapping<TSource, TDestination>,
+    option: MapActionOptions<TSource, TDestination> = {
+      beforeMap: undefined,
+      afterMap: undefined
+    }
+  ): Promise<TDestination> {
+    return Promise.resolve().then(() => this._map(sourceObj, mapping, option));
   }
 
   protected _mapArrayAsync<
     TSource extends { [key in keyof TSource]: any } = any,
     TDestination extends { [key in keyof TDestination]: any } = any
-  >(sourceArray: TSource[], mapping: Mapping<TSource, TDestination>): Promise<TDestination[]> {
-    return Promise.resolve().then(() => sourceArray.map(s => this._map(s, mapping)));
+  >(
+    sourceArray: TSource[],
+    mapping: Mapping<TSource, TDestination>,
+    option: MapActionOptions<TSource[], TDestination[]> = {
+      beforeMap: undefined,
+      afterMap: undefined
+    }
+  ): Promise<TDestination[]> {
+    return Promise.resolve().then(() => this._mapArray(sourceArray, mapping, option));
   }
 
   private _assertMappingErrors<T extends { [key in keyof T]: any } = any>(
@@ -266,7 +322,7 @@ export abstract class AutoMapperBase {
   ): Mapping<TSource, TDestination> {
     const key = this._hasMapping(source, destination);
 
-    const mapping = {
+    const mapping: Mapping<TSource, TDestination> = {
       source,
       destination,
       sourceKey: source.name,
@@ -340,8 +396,8 @@ export abstract class AutoMapperBase {
     source: Constructable<TSource>,
     destination: Constructable<TDestination>
   ): Mapping<TSource, TDestination> {
-    const sourceName = source.name || source.constructor.name;
-    const destinationName = destination.name || destination.constructor.name;
+    const sourceName = source.prototype.constructor.name;
+    const destinationName = destination.prototype.constructor.name;
     const mapping = this._mappings[this._getMappingKey(sourceName, destinationName)];
 
     if (!mapping) {
@@ -356,7 +412,7 @@ export abstract class AutoMapperBase {
   protected _getMappingForDestination<TSource, TDestination>(
     destination: Constructable<TDestination>
   ): Mapping<TSource, TDestination> {
-    const destinationName = destination.name || destination.constructor.name;
+    const destinationName = destination.prototype.constructor.name;
     const sourceKey = Object.keys(this._mappings)
       .filter(key => key.includes(destinationName))
       .find(key => this._mappings[key].destinationKey === destinationName);

@@ -9,6 +9,7 @@ import {
   CreateReverseMapFluentFunctions,
   DestinationMemberConfigOptions,
   ForMemberExpression,
+  MapActionOptions,
   MapFromCallback,
   Mapping,
   MappingProfile,
@@ -99,38 +100,17 @@ export class AutoMapper extends AutoMapperBase {
    * ```
    *
    * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-   * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
-   *   values
+   * @param {Constructable<TDestination>} destination - the Destination model to receive the
+   *   mapped values
+   * @param {MapActionOptions<TSource, TDestination>} option - Optional mapping option
    */
   public map<TSource extends {} = any, TDestination extends {} = any>(
     sourceObj: TSource,
-    destination: Constructable<TDestination>
-  ): TDestination;
-  /**
-   * Map from Source to Destination
-   *
-   * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-   * @param {Constructable<TSource>} source - the Source model
-   * @param {Constructable<TDestination>} destination - the Destination model
-   */
-  public map<TSource extends {} = any, TDestination extends {} = any>(
-    sourceObj: TSource,
-    source: Constructable<TSource>,
-    destination: Constructable<TDestination>
-  ): TDestination;
-  public map<TSource extends {} = any, TDestination extends {} = any>(
-    sourceObj: TSource,
-    ...args: Constructable<TSource | TDestination>[]
+    destination: Constructable<TDestination>,
+    option?: MapActionOptions<TSource, TDestination>
   ): TDestination {
-    if (args.length === 2) {
-      const mapping = super._getMapping(args[0] as Constructable<TSource>, args[1]);
-      return super._map(sourceObj, mapping) as TDestination;
-    }
-
-    const mapping = super._getMappingForDestination<TSource, TDestination>(args[0] as Constructable<
-      TDestination
-    >);
-    return super._map(sourceObj, mapping);
+    const mapping = super._getMappingForDestination<TSource, TDestination>(destination);
+    return super._map(sourceObj, mapping, option);
   }
 
   /**
@@ -148,41 +128,19 @@ export class AutoMapper extends AutoMapperBase {
    * ```
    *
    * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-   * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
-   *   values
+   * @param {Constructable<TDestination>} destination - the Destination model to receive the
+   *   mapped values
    *
+   * @param {MapActionOptions<TSource, TDestination>} option - Optional mapping option
    * @returns {Promise<TDestination>} Promise that resolves TDestination
    */
   public mapAsync<TSource extends {} = any, TDestination extends {} = any>(
     sourceObj: TSource,
-    destination: Constructable<TDestination>
-  ): Promise<TDestination>;
-  /**
-   * Map from Source to Destination async
-   *
-   * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-   * @param {Constructable<TSource>} source - the Source model
-   * @param {Constructable<TDestination>} destination - the Destination model
-   * @returns {Promise<TDestination>} Promise that resolves TDestination
-   */
-  public mapAsync<TSource extends {} = any, TDestination extends {} = any>(
-    sourceObj: TSource,
-    source: Constructable<TSource>,
-    destination: Constructable<TDestination>
-  ): Promise<TDestination>;
-  public mapAsync<TSource extends {} = any, TDestination extends {} = any>(
-    sourceObj: TSource,
-    ...args: Constructable<TSource | TDestination>[]
+    destination: Constructable<TDestination>,
+    option?: MapActionOptions<TSource, TDestination>
   ): Promise<TDestination> {
-    if (args.length === 2) {
-      const mapping = super._getMapping(args[0] as Constructable<TSource>, args[1]);
-      return super._mapAsync(sourceObj, mapping) as Promise<TDestination>;
-    }
-
-    const mapping = super._getMappingForDestination<TSource, TDestination>(args[0] as Constructable<
-      TDestination
-    >);
-    return super._mapAsync(sourceObj, mapping);
+    const mapping = super._getMappingForDestination<TSource, TDestination>(destination);
+    return super._mapAsync(sourceObj, mapping, option);
   }
 
   /**
@@ -199,46 +157,22 @@ export class AutoMapper extends AutoMapperBase {
    * ```
    *
    * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-   * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
-   *   values
+   * @param {Constructable<TDestination>} destination - the Destination model to receive the
+   *   mapped values
+   * @param {MapActionOptions<TSource, TDestination>} option - Optional mapping option
    */
   public mapArray<TSource extends {} = any, TDestination extends {} = any>(
     sourceObj: TSource[],
-    destination: Constructable<TDestination>
-  ): TDestination[];
-  /**
-   * Map from a list of Source to a list of Destination
-   *
-   * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-   * @param {Constructable<TSource>} source - the Source model
-   * @param {Constructable<TDestination>} destination - the Destination model
-   */
-  public mapArray<TSource extends {} = any, TDestination extends {} = any>(
-    sourceObj: TSource[],
-    source: Constructable<TSource>,
-    destination: Constructable<TDestination>
-  ): TDestination[];
-  public mapArray<TSource extends {} = any, TDestination extends {} = any>(
-    sourceObj: TSource[],
-    ...args: Constructable<TSource | TDestination>[]
+    destination: Constructable<TDestination>,
+    option?: MapActionOptions<TSource[], TDestination[]>
   ): TDestination[] {
-    if (args.length === 2) {
-      const mapping = super._getMapping(
-        args[0] as Constructable<TSource>,
-        args[1] as Constructable<TDestination>
-      );
-      return super._mapArray(sourceObj, mapping);
-    }
-
-    const mapping = super._getMappingForDestination<TSource, TDestination>(args[0] as Constructable<
-      TDestination
-    >);
-    return super._mapArray(sourceObj, mapping);
+    const mapping = super._getMappingForDestination<TSource, TDestination>(destination);
+    return super._mapArray(sourceObj, mapping, option);
   }
 
   /**
-   * Map from a list of Source to a list of Destination async. Mapping operation will be run as a
-   * micro task.
+   * Map from a list of Source to a list of Destination async. Mapping operation will be run
+   * as a micro task.
    *
    * @example
    *
@@ -251,45 +185,18 @@ export class AutoMapper extends AutoMapperBase {
    * ```
    *
    * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-   * @param {Constructable<TDestination>} destination - the Destination model to receive the mapped
-   *   values
-   *
+   * @param {Constructable<TDestination>} destination - the Destination model to receive the
+   *   mapped values
+   * @param {MapActionOptions<TSource, TDestination>} option - Optional mapping option
    * @returns {Promise<TDestination[]>>} Promise that resolves a TDestination[]
    */
   public mapArrayAsync<TSource extends {} = any, TDestination extends {} = any>(
     sourceObj: TSource[],
-    destination: Constructable<TDestination>
-  ): Promise<TDestination[]>;
-  /**
-   * Map from a list of Source to a list of Destination async.
-   *
-   * @param {TSource} sourceObj - the sourceObj that are going to be mapped
-   * @param {Constructable<TSource>} source - the Source model
-   * @param {Constructable<TDestination>} destination - the Destination model
-   *
-   * @returns {Promise<TDestination[]>>} Promise that resolves a TDestination[]
-   */
-  public mapArrayAsync<TSource extends {} = any, TDestination extends {} = any>(
-    sourceObj: TSource[],
-    source: Constructable<TSource>,
-    destination: Constructable<TDestination>
-  ): Promise<TDestination[]>;
-  public mapArrayAsync<TSource extends {} = any, TDestination extends {} = any>(
-    sourceObj: TSource[],
-    ...args: Constructable<TSource | TDestination>[]
+    destination: Constructable<TDestination>,
+    option?: MapActionOptions<TSource[], TDestination[]>
   ): Promise<TDestination[]> {
-    if (args.length === 2) {
-      const mapping = super._getMapping(
-        args[0] as Constructable<TSource>,
-        args[1] as Constructable<TDestination>
-      );
-      return super._mapArrayAsync(sourceObj, mapping);
-    }
-
-    const mapping = super._getMappingForDestination<TSource, TDestination>(args[0] as Constructable<
-      TDestination
-    >);
-    return super._mapArrayAsync(sourceObj, mapping);
+    const mapping = super._getMappingForDestination<TSource, TDestination>(destination);
+    return super._mapArrayAsync(sourceObj, mapping, option);
   }
 
   /**
@@ -340,6 +247,14 @@ export class AutoMapper extends AutoMapperBase {
       },
       reverseMap: () => {
         return this._createReverseMap(mapping);
+      },
+      beforeMap: action => {
+        mapping.beforeMapAction = action;
+        return fluentFunctions;
+      },
+      afterMap: action => {
+        mapping.afterMapAction = action;
+        return fluentFunctions;
       }
     };
 

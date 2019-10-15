@@ -255,17 +255,6 @@ describe('automapper-nartc: mapping', () => {
     expect(vm.nested).toBeInstanceOf(NestedVm);
   });
 
-  it('map with overload method', () => {
-    const vm = Mapper.map(user, User, UserVm);
-    expect(vm.firstName).toEqual(user.firstName);
-    expect(vm.lastName).toEqual(user.lastName);
-    expect(vm.fullName).toEqual(user.firstName + ' ' + user.lastName);
-    expect(vm).toBeInstanceOf(UserVm);
-    expect(vm.nested).toBeDefined();
-    expect(vm.nested.bar).toEqual(user.nested.foo);
-    expect(vm.nested).toBeInstanceOf(NestedVm);
-  });
-
   it('map with config.addProfile', () => {
     const vm = Mapper.map(address, AddressVm);
     expect(vm.addressString).toEqual(address.street + ' ' + address.city + ' ' + address.state);
@@ -276,24 +265,6 @@ describe('automapper-nartc: mapping', () => {
     const userVms = Mapper.mapArray(users, UserVm);
     const addressVms = Mapper.mapArray(addresses, AddressVm);
     const profileVms = Mapper.mapArray(profiles, ProfileVm);
-
-    expect(userVms).toBeTruthy();
-    expect(userVms).toHaveLength(1);
-    userVms.forEach(vm => expect(vm).toBeInstanceOf(UserVm));
-
-    expect(addressVms).toBeTruthy();
-    expect(addressVms).toHaveLength(1);
-    addressVms.forEach(vm => expect(vm).toBeInstanceOf(AddressVm));
-
-    expect(profileVms).toBeTruthy();
-    expect(profileVms).toHaveLength(1);
-    profileVms.forEach(vm => expect(vm).toBeInstanceOf(ProfileVm));
-  });
-
-  it('mapArray with overload method', () => {
-    const userVms = Mapper.mapArray(users, User, UserVm);
-    const addressVms = Mapper.mapArray(addresses, Address, AddressVm);
-    const profileVms = Mapper.mapArray(profiles, Profile, ProfileVm);
 
     expect(userVms).toBeTruthy();
     expect(userVms).toHaveLength(1);
