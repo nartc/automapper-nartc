@@ -275,7 +275,9 @@ Mapper.initialize(config => {
 ```
 
 **NOTE 1: `Map` level callbacks will overide `Mapping` level callbacks if both are provided**
+
 **NOTE 2: The callbacks are called with `source`, `destination` and `mapping`. **ANYTHING** you do to the `source` and `destination` will be carried over to the `source` and `destination` being mapped (mutation) so please be cautious. It might be handy/dangerous at the same time given the dynamic characteristic of **JavaScript**.**
+
 **NOTE 3: `mapArray()` will ignore `Mapping` level callbacks because that would be a performance issue if callbacks were to be called on every single item in an array. Provide `Map` level callbacks for `mapArray()` if you want to have callbacks on `mapArray()`**
 
 6. Use `Mapper.mapArray()` if you want to map from `TSource[]` to `TDestination[]`.
