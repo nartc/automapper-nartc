@@ -210,9 +210,11 @@ export class UserProfile extends MappingProfileBase {
   // configure() is required since it is an abstract method. configure() will be called automatically by Mapper.
   // This is where you will setup your mapping with the class method: createMap
   configure(mapper: AutoMapper) {
-    mapper.createMap(User, UserVm).forMember('fullName', opts =>
-      opts.mapFrom(source => source.firstName + ' ' + source.lastName)
-    ); // You will get type-inference here
+    mapper
+      .createMap(User, UserVm)
+      .forMember('fullName', opts =>
+        opts.mapFrom(source => source.firstName + ' ' + source.lastName)
+      ); // You will get type-inference here
   }
 }
 
@@ -229,6 +231,52 @@ const userVm = Mapper.map(user, UserVm); // this will return an instance of User
 
 console.log('instance of UserVm?', userVm instanceof UserVm); // true
 ```
+
+#### Callbacks
+
+`automapper-nartc` provides `beforeMap` and `afterMap` callbacks which are called **before** a mapping operator occurs and/or **after** a mapping operator occurs, if said callbacks are provided.
+
+There are two ways you can provide the callbacks: `Map` level and `Mapping` level.
+
+**NOTE: `Map` level refers to the actual map operation when any of the `map()` methods are called. `Mapping` level refers to the actual `Mapping` between two models when `createMap()` is called.**
+
+- **Map** level: all `map()` methods have the third parameter which has a shape of `MapActionOptions: {beforeMap: Function, afterMap: Function}`. If any of the callbacks is provided, it will be called in correct chronological order.
+
+```typescript
+/**
+ * In this case, both callbacks will be called with the following arguments.
+ *
+ * @param {User} source
+ * @param {UserVm} destination
+ * @param {Mapping<User, UserVm>} mapping
+ */
+const userVm = Mapper.map(user, UserVm, {
+  beforeMap: (source, destination, mapping) => {},
+  afterMap: (source, destination, mapping) => {}
+});
+```
+
+- **Mapping** level: callbacks on the `Mapping` level will be called for ALL map operations on the two models unless you provide diferent callbacks to specific `map` operation (aka `Map` level)
+
+```typescript
+/**
+ * In this case, both callbacks will be called with the following arguments.
+ *
+ * @param {User} source
+ * @param {UserVm} destination
+ * @param {Mapping<User, UserVm>} mapping
+ */
+Mapper.initialize(config => {
+  config
+    .createMap(User, UserVm)
+    .beforeMap((source, destination, mapping) => {})
+    .afterMap((source, destination, mapping) => {}); // create a mapping from User to UserVm (one direction)
+});
+```
+
+**NOTE 1: `Map` level callbacks will overide `Mapping` level callbacks if both are provided**
+**NOTE 2: The callbacks are called with `source`, `destination` and `mapping`. **ANYTHING** you do to the `source` and `destination` will be carried over to the `source` and `destination` being mapped (mutation) so please be cautious. It might be handy/dangerous at the same time given the dynamic characteristic of **JavaScript**.**
+**NOTE 3: `mapArray()` will ignore `Mapping` level callbacks because that would be a performance issue if callbacks were to be called on every single item in an array. Provide `Map` level callbacks for `mapArray()` if you want to have callbacks on `mapArray()`**
 
 6. Use `Mapper.mapArray()` if you want to map from `TSource[]` to `TDestination[]`.
 

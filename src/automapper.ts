@@ -210,7 +210,7 @@ export class AutoMapper extends AutoMapperBase {
     }
 
     profile.configure(this);
-    this._profiles[profile.profileName] = profile;
+    this._profiles[profile.profileName] = Object.freeze(profile);
     return this;
   }
 
@@ -299,7 +299,7 @@ export class AutoMapper extends AutoMapperBase {
 
     const mappingProperty: MappingProperty<TSource, TDestination> = {
       destinationKey: key,
-      transformation: {
+      transformation: Object.freeze({
         transformationType,
         // @ts-ignore
         mapFrom,
@@ -311,10 +311,10 @@ export class AutoMapper extends AutoMapperBase {
         mapWith,
         // @ts-ignore
         convertUsing
-      }
+      })
     };
 
-    mapping.properties.set(key, mappingProperty);
+    mapping.properties.set(key, Object.freeze(mappingProperty));
 
     return fluentFunctions;
   }
@@ -378,7 +378,7 @@ export class AutoMapper extends AutoMapperBase {
 
     const mappingProperty: MappingProperty<TDestination, TSource> = {
       destinationKey: key,
-      transformation: {
+      transformation: Object.freeze({
         transformationType,
         // @ts-ignore
         mapFrom,
@@ -390,10 +390,10 @@ export class AutoMapper extends AutoMapperBase {
         mapWith,
         // @ts-ignore
         convertUsing
-      }
+      })
     };
 
-    mapping.properties.set(key, mappingProperty);
+    mapping.properties.set(key, Object.freeze(mappingProperty));
     return fluentFunctions;
   }
 }

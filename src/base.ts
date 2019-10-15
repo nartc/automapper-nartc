@@ -60,16 +60,17 @@ export abstract class AutoMapperBase {
       afterMap: undefined
     }
   ): TDestination[] {
+    let destination: TDestination[] = [];
     const { beforeMap, afterMap } = option;
 
     if (beforeMap) {
-      beforeMap(sourceArray, [], mapping);
+      beforeMap(sourceArray, destination, { ...mapping });
     }
 
-    const destination = sourceArray.map(s => this._map(s, mapping, {}, true));
+    destination = sourceArray.map(s => this._map(s, mapping, {}, true));
 
     if (afterMap) {
-      afterMap(sourceArray, destination, mapping);
+      afterMap(sourceArray, destination, { ...mapping });
     }
 
     return destination;
@@ -98,9 +99,9 @@ export abstract class AutoMapperBase {
 
     if (!isArrayMap) {
       if (beforeMap) {
-        beforeMap(sourceObj, destinationObj, mapping);
+        beforeMap(sourceObj, destinationObj, { ...mapping });
       } else if (beforeMapAction) {
-        beforeMapAction(sourceObj, destinationObj, mapping);
+        beforeMapAction(sourceObj, destinationObj, { ...mapping });
       }
     }
 
@@ -254,9 +255,9 @@ export abstract class AutoMapperBase {
 
     if (!isArrayMap) {
       if (afterMap) {
-        afterMap(sourceObj, destinationObj, mapping);
+        afterMap(sourceObj, destinationObj, { ...mapping });
       } else if (afterMapAction) {
-        afterMapAction(sourceObj, destinationObj, mapping);
+        afterMapAction(sourceObj, destinationObj, { ...mapping });
       }
     }
 
@@ -330,7 +331,7 @@ export abstract class AutoMapperBase {
       properties: new Map()
     };
 
-    this._mappings[key] = mapping;
+    this._mappings[key] = Object.freeze(mapping);
     return mapping;
   }
 
@@ -365,7 +366,7 @@ export abstract class AutoMapperBase {
     //   }
     // }
 
-    this._mappings[key] = reverseMapping;
+    this._mappings[key] = Object.freeze(reverseMapping);
 
     return reverseMapping;
   }
