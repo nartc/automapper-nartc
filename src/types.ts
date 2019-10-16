@@ -184,6 +184,14 @@ export interface CreateMapFluentFunctions<
   ): CreateMapFluentFunctions<TSource, TDestination>;
 
   reverseMap(): CreateReverseMapFluentFunctions<TDestination, TSource>;
+
+  setSourceNamingConvention(
+    namingConvention: NamingConvention
+  ): CreateMapFluentFunctions<TSource, TDestination>;
+
+  setDestinationNamingConvention(
+    namingConvention: NamingConvention
+  ): CreateMapFluentFunctions<TSource, TDestination>;
 }
 
 export interface Configuration {
@@ -224,6 +232,8 @@ export interface Mapping<
   sourceKey: string;
   destinationKey: string;
   properties: Map<keyof TDestination, MappingProperty<TSource, TDestination>>;
+  sourceMemberNamingConvention: NamingConvention;
+  destinationMemberNamingConvention: NamingConvention;
   beforeMapAction?: BeforeAfterMapAction<TSource, TDestination>;
   afterMapAction?: BeforeAfterMapAction<TSource, TDestination>;
 }
@@ -233,8 +243,8 @@ export interface MappingProfile {
   configure: (mapper: AutoMapper) => void;
 }
 
-// export type NamingConvention = {
-//   splittingExpression: RegExp;
-//   separatorCharacter: string;
-//   transformPropertyName: (sourcePropNameParts: string[]) => string;
-// };
+export type NamingConvention = {
+  splittingExpression: RegExp;
+  separatorCharacter: string;
+  transformPropertyName: (sourcePropNameParts: string[]) => string;
+};

@@ -36,7 +36,7 @@ export const ExposedType = (
 export class AutoMapper extends AutoMapperBase {
   private static _instance: AutoMapper = new AutoMapper();
 
-  private readonly _profiles!: { [key: string]: any };
+  private readonly _profiles!: { [key: string]: MappingProfile };
 
   /**
    * @static - Get the Mapper instance
@@ -254,6 +254,14 @@ export class AutoMapper extends AutoMapperBase {
       },
       afterMap: action => {
         mapping.afterMapAction = action;
+        return fluentFunctions;
+      },
+      setSourceNamingConvention: namingConvention => {
+        mapping.sourceMemberNamingConvention = namingConvention;
+        return fluentFunctions;
+      },
+      setDestinationNamingConvention: namingConvention => {
+        mapping.destinationMemberNamingConvention = namingConvention;
         return fluentFunctions;
       }
     };

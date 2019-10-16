@@ -1,6 +1,15 @@
 import { Expose } from 'class-transformer';
 import 'reflect-metadata';
-import { AutoMapper, Converter, ExposedType, Mapper, MappingProfileBase } from '../src';
+import {
+  AutoMapper,
+  BeforeAfterMapAction,
+  Converter,
+  ExposedType,
+  Mapper,
+  Mapping,
+  MappingProfileBase
+} from '../src';
+import { PascalCaseNamingConvention } from '../src/naming/pascal-case-naming-convention';
 
 class User {
   @Expose()
@@ -72,6 +81,15 @@ class NestedVm {
   barbarfoo!: number;
   @Expose()
   barbarfoofoo!: Date;
+}
+
+class Employee {
+  Name!: string;
+  Department!: string;
+}
+
+class EmployeeVm {
+  nameAndDepartment!: string;
 }
 
 class DateFormatter implements Converter<string, Date> {
@@ -157,6 +175,7 @@ describe('automapper-nartc', () => {
 });
 
 describe('automapper-nartc: mapping', () => {
+  let employee: Employee;
   let user: User;
   let users: User[] = [];
   let address: Address;
@@ -165,6 +184,9 @@ describe('automapper-nartc: mapping', () => {
   let profiles: Profile[] = [];
 
   beforeEach(() => {
+    Mapper.createMap(Employee, EmployeeVm)
+      .setSourceNamingConvention(new PascalCaseNamingConvention())
+      .forMember('nameAndDepartment', opts => opts.mapFrom(s => s.Name + ' ' + s.Department));
     Mapper.createMap(Profile, ProfileVm)
       .forMember('avatarUrl', opts => opts.mapFrom(s => s.avatar))
       .reverseMap()
@@ -211,6 +233,10 @@ describe('automapper-nartc: mapping', () => {
     profile = new Profile();
     profile.bio = 'Some bio';
     profile.avatar = 'Some link';
+
+    employee = new Employee();
+    employee.Name = 'Chau';
+    employee.Department = 'Code';
 
     users.push(user);
     addresses.push(address);
@@ -277,5 +303,57 @@ describe('automapper-nartc: mapping', () => {
     expect(profileVms).toBeTruthy();
     expect(profileVms).toHaveLength(1);
     profileVms.forEach(vm => expect(vm).toBeInstanceOf(ProfileVm));
+  });
+
+  it('beforeMap callback', () => {
+    let _source: User;
+    let _destination: UserVm;
+    let _mapping: Mapping<User, UserVm>;
+    const cb: BeforeAfterMapAction<User, UserVm> = jest.fn((source, destination, mapping) => {
+      _source = source;
+      _destination = destination;
+      _mapping = mapping as Mapping<User, UserVm>;
+    });
+    Mapper.map(user, UserVm, { beforeMap: cb });
+
+    expect(cb).toBeCalled();
+    // @ts-ignore
+    expect(_source).toBeTruthy();
+    // @ts-ignore
+    expect(_source).toEqual(user);
+    // @ts-ignore
+    expect(_destination).toBeTruthy();
+    // @ts-ignore
+    expect(_mapping).toBeTruthy();
+  });
+
+  it('afterMap callback', () => {
+    let _source: User;
+    let _destination: UserVm;
+    let _mapping: Mapping<User, UserVm>;
+    const cb: BeforeAfterMapAction<User, UserVm> = jest.fn((source, destination, mapping) => {
+      _source = source;
+      _destination = destination;
+      _mapping = mapping as Mapping<User, UserVm>;
+    });
+    const vm = Mapper.map(user, UserVm, { afterMap: cb });
+
+    expect(cb).toBeCalled();
+    // @ts-ignore
+    expect(_source).toBeTruthy();
+    // @ts-ignore
+    expect(_source).toEqual(user);
+    // @ts-ignore
+    expect(_destination).toBeTruthy();
+    // @ts-ignore
+    expect(_destination).toEqual(vm);
+    // @ts-ignore
+    expect(_mapping).toBeTruthy();
+  });
+
+  it('pascalNamingConvention', () => {
+    const vm = Mapper.map(employee, EmployeeVm);
+    expect(vm).toBeTruthy();
+    expect(vm.nameAndDepartment).toEqual('Chau Code');
   });
 });

@@ -1,7 +1,7 @@
 import { plainToClass } from 'class-transformer';
 import get from 'lodash.get';
 import isEmpty from 'lodash.isempty';
-import lowerCase from 'lodash.lowercase';
+import { CamelCaseNamingConvention } from './naming/camel-case-naming-convention';
 import {
   Constructable,
   ForMemberExpression,
@@ -64,13 +64,13 @@ export abstract class AutoMapperBase {
     const { beforeMap, afterMap } = option;
 
     if (beforeMap) {
-      beforeMap(sourceArray, destination, mapping);
+      beforeMap(sourceArray, destination, { ...mapping });
     }
 
     destination = sourceArray.map(s => this._map(s, mapping, {}, true));
 
     if (afterMap) {
-      afterMap(sourceArray, destination, mapping);
+      afterMap(sourceArray, destination, { ...mapping });
     }
 
     return destination;
@@ -87,7 +87,14 @@ export abstract class AutoMapperBase {
   ): TDestination {
     sourceObj = plainToClass(mapping.source, sourceObj);
     const { beforeMap, afterMap } = option;
-    const { destination, properties, afterMapAction, beforeMapAction } = mapping;
+    const {
+      destination,
+      properties,
+      afterMapAction,
+      beforeMapAction,
+      destinationMemberNamingConvention,
+      sourceMemberNamingConvention
+    } = mapping;
     const destinationObj = plainToClass(destination, new destination());
     const configProps = [...properties.keys()];
 
@@ -96,20 +103,25 @@ export abstract class AutoMapperBase {
 
     if (!isArrayMap) {
       if (beforeMap) {
-        beforeMap(sourceObj, destinationObj, mapping);
+        beforeMap(sourceObj, destinationObj, { ...mapping });
       } else if (beforeMapAction) {
-        beforeMapAction(sourceObj, destinationObj, mapping);
+        beforeMapAction(sourceObj, destinationObj, { ...mapping });
       }
     }
 
     for (let i = 0; i < destinationKeysLen; i++) {
       const key = destinationKeys[i] as keyof TDestination;
+      const sourceKey = this._getSourcePropertyKey(mapping, key);
       if (configProps.includes(key)) {
         continue;
       }
 
-      if (!sourceObj.hasOwnProperty(key)) {
-        const keys = lowerCase(key as string).split(' ');
+      // customerName -> CustomerName
+      // CustomerName -> Customer Name
+      if (!sourceObj.hasOwnProperty(sourceKey)) {
+        const keys = sourceKey
+          .split(mapping.sourceMemberNamingConvention.splittingExpression)
+          .filter(Boolean);
         if (keys.length === 1 || !sourceObj.hasOwnProperty(keys[0])) {
           continue;
         }
@@ -122,7 +134,7 @@ export abstract class AutoMapperBase {
         continue;
       }
 
-      const sourceVal: TSource[keyof TSource] = sourceObj[key];
+      const sourceVal: TSource[keyof TSource] = sourceObj[sourceKey as keyof TSource];
       if (sourceVal === undefined || sourceVal === null) {
         delete destinationObj[key];
         continue;
@@ -172,6 +184,7 @@ export abstract class AutoMapperBase {
     const propKeys: Array<keyof TDestination> = [];
     for (let prop of properties.values()) {
       propKeys.push(prop.destinationKey);
+      const propSourceKey = this._getSourcePropertyKey(mapping, prop.destinationKey);
       if (prop.transformation.transformationType === TransformationType.Ignore) {
         destinationObj[prop.destinationKey] = null as any;
         continue;
@@ -180,8 +193,8 @@ export abstract class AutoMapperBase {
       if (prop.transformation.transformationType === TransformationType.Condition) {
         const condition = prop.transformation.condition(sourceObj);
         if (condition) {
-          destinationObj[prop.destinationKey] = (sourceObj as any)[prop.destinationKey] || null;
-          console.warn(`${prop.destinationKey} does not exist on ${mapping.source}`);
+          destinationObj[prop.destinationKey] = (sourceObj as any)[propSourceKey] || null;
+          console.warn(`${propSourceKey} does not exist on ${mapping.source}`);
         }
         continue;
       }
@@ -196,7 +209,7 @@ export abstract class AutoMapperBase {
         const _source = prop.transformation.mapWith.value(sourceObj);
 
         if (isEmpty(_source)) {
-          console.warn(`${prop.destinationKey} does not exist on ${_mapping.source}`);
+          console.warn(`${propSourceKey} does not exist on ${_mapping.source}`);
           destinationObj[prop.destinationKey] = null as any;
           continue;
         }
@@ -223,10 +236,10 @@ export abstract class AutoMapperBase {
       if (prop.transformation.transformationType === TransformationType.ConvertUsing) {
         const { converter, value } = prop.transformation.convertUsing;
         if (value == null) {
-          const _source = (sourceObj as any)[prop.destinationKey];
+          const _source = (sourceObj as any)[propSourceKey];
 
           if (_source == null) {
-            console.warn(`${prop.destinationKey} does not exist on ${mapping.source}`);
+            console.warn(`${propSourceKey} does not exist on ${mapping.source}`);
             destinationObj[prop.destinationKey] = null as any;
             continue;
           }
@@ -257,9 +270,9 @@ export abstract class AutoMapperBase {
 
     if (!isArrayMap) {
       if (afterMap) {
-        afterMap(sourceObj, destinationObj, mapping);
+        afterMap(sourceObj, destinationObj, { ...mapping });
       } else if (afterMapAction) {
-        afterMapAction(sourceObj, destinationObj, mapping);
+        afterMapAction(sourceObj, destinationObj, { ...mapping });
       }
     }
 
@@ -330,10 +343,12 @@ export abstract class AutoMapperBase {
       destination,
       sourceKey: source.name,
       destinationKey: destination.name,
-      properties: new Map()
+      properties: new Map(),
+      sourceMemberNamingConvention: new CamelCaseNamingConvention(),
+      destinationMemberNamingConvention: new CamelCaseNamingConvention()
     };
 
-    this._mappings[key] = Object.freeze(mapping);
+    this._mappings[key] = mapping;
     return mapping;
   }
 
@@ -347,7 +362,9 @@ export abstract class AutoMapperBase {
       destination: mapping.source,
       sourceKey: mapping.destination.name,
       destinationKey: mapping.source.name,
-      properties: new Map()
+      properties: new Map(),
+      sourceMemberNamingConvention: mapping.destinationMemberNamingConvention,
+      destinationMemberNamingConvention: mapping.sourceMemberNamingConvention
     };
 
     // TODO: Implement reverse nested mapping
@@ -505,5 +522,17 @@ export abstract class AutoMapperBase {
     }
 
     return mapping;
+  }
+
+  private _getSourcePropertyKey<TSource, TDestination>(
+    mapping: Mapping<TSource, TDestination>,
+    key: keyof TDestination
+  ): string {
+    const keyParts = (key as string)
+      .split(mapping.destinationMemberNamingConvention.splittingExpression)
+      .filter(Boolean);
+    return !keyParts.length
+      ? (key as string)
+      : mapping.sourceMemberNamingConvention.transformPropertyName(keyParts);
   }
 }
