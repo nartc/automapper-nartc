@@ -26,6 +26,7 @@ So far, the following is supported:
 - [x] Value Resolvers
 - [x] Async
 - [x] Before/After Callback
+- [x] Naming Conventions
 
 **NOTE: Please be advised that the current state of this library is for learning purposes and I'd appreciate any help/guides. Everything is still in beta and DO NOT USE in production.**
 
@@ -33,7 +34,6 @@ So far, the following is supported:
 
 - [ ] Type Converters - Help needed
 - [ ] Value Transformers
-- [ ] Naming Conventions
 
 #### Will not support:
 
