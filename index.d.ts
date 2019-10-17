@@ -208,6 +208,7 @@ declare module 'automapper-nartc/index' {
   export * from 'automapper-nartc/types';
   export * from 'automapper-nartc/automapper';
   export * from 'automapper-nartc/profile';
+  export * from 'automapper-nartc/naming/index';
 
 }
 declare module 'automapper-nartc/naming/camel-case-naming-convention' {
@@ -217,6 +218,11 @@ declare module 'automapper-nartc/naming/camel-case-naming-convention' {
       splittingExpression: RegExp;
       transformPropertyName(sourceNameParts: string[]): string;
   }
+
+}
+declare module 'automapper-nartc/naming/index' {
+  export * from 'automapper-nartc/naming/camel-case-naming-convention';
+  export * from 'automapper-nartc/naming/pascal-case-naming-convention';
 
 }
 declare module 'automapper-nartc/naming/pascal-case-naming-convention' {
