@@ -140,26 +140,6 @@ declare module 'automapper-nartc/automapper' {
       private _createMapForPath;
   }
   /**
-   * Abstract class for all mapping Profiles
-   *
-   */
-  export abstract class MappingProfileBase implements MappingProfile {
-      /**
-       * @property {string} profileName - the name of the Profile
-       */
-      profileName: string;
-      /**
-       * @constructor - initialize the profile with the profileName
-       */
-      protected constructor();
-      /**
-       * @abstract configure() method to be called when using with Mapper.initialize()
-       *
-       * @param {AutoMapper} mapper - AutoMapper instance to add this Profile on
-       */
-      abstract configure(mapper: AutoMapper): void;
-  }
-  /**
    * @instance AutoMapper singleton
    */
   export const Mapper: AutoMapper;
@@ -195,7 +175,7 @@ declare module 'automapper-nartc/base' {
       } = any, TDestination extends {
           [key in keyof TDestination]: any;
       } = any>(sourceArray: TSource[], mapping: Mapping<TSource, TDestination>, option?: MapActionOptions<TSource[], TDestination[]>): Promise<TDestination[]>;
-      private _assertMappingErrors;
+      private static _assertMappingErrors;
       protected _createMappingObject<TSource extends {
           [key in keyof TSource]: any;
       } = any, TDestination extends {
@@ -213,12 +193,13 @@ declare module 'automapper-nartc/base' {
       protected _getMappingForDestination<TSource, TDestination>(destination: Constructable<TDestination>): Mapping<TSource, TDestination>;
       protected _dispose(): void;
       private _hasMapping;
-      private _getMappingKey;
-      private _isClass;
-      private _isDate;
-      private _isArray;
-      private _isResolver;
+      private static _getMappingKey;
+      private static _isClass;
+      private static _isDate;
+      private static _isArray;
+      private static _isResolver;
       private _getMappingForNestedKey;
+      private static _getSourcePropertyKey;
   }
 
 }
@@ -226,12 +207,50 @@ declare module 'automapper-nartc/index' {
   export * from 'automapper-nartc/base';
   export * from 'automapper-nartc/types';
   export * from 'automapper-nartc/automapper';
+  export * from 'automapper-nartc/profile';
 
 }
 declare module 'automapper-nartc/naming/camel-case-naming-convention' {
+  import { NamingConvention } from 'automapper-nartc/types';
+  export class CamelCaseNamingConvention implements NamingConvention {
+      separatorCharacter: string;
+      splittingExpression: RegExp;
+      transformPropertyName(sourceNameParts: string[]): string;
+  }
 
 }
 declare module 'automapper-nartc/naming/pascal-case-naming-convention' {
+  import { NamingConvention } from 'automapper-nartc/types';
+  export class PascalCaseNamingConvention implements NamingConvention {
+      separatorCharacter: string;
+      splittingExpression: RegExp;
+      transformPropertyName(sourceNameParts: string[]): string;
+  }
+
+}
+declare module 'automapper-nartc/profile' {
+  import { AutoMapper } from 'automapper-nartc/automapper';
+  import { MappingProfile } from 'automapper-nartc/types';
+  /**
+   * Abstract class for all mapping Profiles
+   *
+   */
+  export abstract class MappingProfileBase implements MappingProfile {
+      /**
+       * @property {string} profileName - the name of the Profile
+       */
+      profileName: string;
+      /**
+       * @constructor - initialize the profile with the profileName
+       */
+      protected constructor();
+      /**
+       * @abstract configure() method to be called when using with Mapper.initialize()
+       *
+       * @param {AutoMapper} mapper - AutoMapper instance to add this Profile on
+       */
+      abstract configure(mapper: AutoMapper): void;
+  }
 
 }
 declare module 'automapper-nartc/types' {
@@ -370,6 +389,8 @@ declare module 'automapper-nartc/types' {
       beforeMap(action: BeforeAfterMapAction<TSource, TDestination>): CreateMapFluentFunctions<TSource, TDestination>;
       afterMap(action: BeforeAfterMapAction<TSource, TDestination>): CreateMapFluentFunctions<TSource, TDestination>;
       reverseMap(): CreateReverseMapFluentFunctions<TDestination, TSource>;
+      setSourceNamingConvention(namingConvention: NamingConvention): CreateMapFluentFunctions<TSource, TDestination>;
+      setDestinationNamingConvention(namingConvention: NamingConvention): CreateMapFluentFunctions<TSource, TDestination>;
   }
   export interface Configuration {
       addProfile(profile: MappingProfile): void;
@@ -405,6 +426,8 @@ declare module 'automapper-nartc/types' {
       sourceKey: string;
       destinationKey: string;
       properties: Map<keyof TDestination, MappingProperty<TSource, TDestination>>;
+      sourceMemberNamingConvention: NamingConvention;
+      destinationMemberNamingConvention: NamingConvention;
       beforeMapAction?: BeforeAfterMapAction<TSource, TDestination>;
       afterMapAction?: BeforeAfterMapAction<TSource, TDestination>;
   }
@@ -412,6 +435,11 @@ declare module 'automapper-nartc/types' {
       profileName: string;
       configure: (mapper: AutoMapper) => void;
   }
+  export type NamingConvention = {
+      splittingExpression: RegExp;
+      separatorCharacter: string;
+      transformPropertyName: (sourcePropNameParts: string[]) => string;
+  };
 
 }
 declare module 'automapper-nartc' {

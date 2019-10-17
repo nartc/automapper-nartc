@@ -83,13 +83,33 @@ class NestedVm {
   barbarfoofoo!: Date;
 }
 
+class EmployeeAddress {
+  @Expose()
+  Street!: string;
+  @Expose()
+  City!: string;
+  @Expose()
+  State!: string;
+}
+
 class Employee {
+  @Expose()
   Name!: string;
+  @Expose()
   Department!: string;
+  @ExposedType(() => EmployeeAddress)
+  Address!: EmployeeAddress;
 }
 
 class EmployeeVm {
+  @Expose()
   nameAndDepartment!: string;
+  @Expose()
+  addressStreet!: string;
+  @Expose()
+  addressCity!: string;
+  @Expose()
+  addressState!: string;
 }
 
 class DateFormatter implements Converter<string, Date> {
@@ -237,6 +257,10 @@ describe('automapper-nartc: mapping', () => {
     employee = new Employee();
     employee.Name = 'Chau';
     employee.Department = 'Code';
+    employee.Address = new EmployeeAddress();
+    employee.Address.Street = 'Some';
+    employee.Address.City = 'City';
+    employee.Address.State = 'State';
 
     users.push(user);
     addresses.push(address);
@@ -354,6 +378,7 @@ describe('automapper-nartc: mapping', () => {
   it('pascalNamingConvention', () => {
     const vm = Mapper.map(employee, EmployeeVm);
     expect(vm).toBeTruthy();
-    expect(vm.nameAndDepartment).toEqual('Chau Code');
+    expect(vm.nameAndDepartment).toEqual(employee.Name + ' ' + employee.Department);
+    expect(vm.addressStreet).toEqual(employee.Address.Street);
   });
 });

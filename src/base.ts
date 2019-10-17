@@ -9,6 +9,7 @@ import {
   MapActionOptions,
   MapFromCallback,
   Mapping,
+  NamingConvention,
   Resolver,
   TransformationType,
   ValueSelector
@@ -92,8 +93,8 @@ export abstract class AutoMapperBase {
       properties,
       afterMapAction,
       beforeMapAction,
-      destinationMemberNamingConvention,
-      sourceMemberNamingConvention
+      sourceMemberNamingConvention,
+      destinationMemberNamingConvention
     } = mapping;
     const destinationObj = plainToClass(destination, new destination());
     const configProps = [...properties.keys()];
@@ -111,7 +112,11 @@ export abstract class AutoMapperBase {
 
     for (let i = 0; i < destinationKeysLen; i++) {
       const key = destinationKeys[i] as keyof TDestination;
-      const sourceKey = this._getSourcePropertyKey(mapping, key);
+      const sourceKey = AutoMapperBase._getSourcePropertyKey(
+        destinationMemberNamingConvention,
+        sourceMemberNamingConvention,
+        key as string
+      );
       if (configProps.includes(key)) {
         continue;
       }
@@ -120,7 +125,7 @@ export abstract class AutoMapperBase {
       // CustomerName -> Customer Name
       if (!sourceObj.hasOwnProperty(sourceKey)) {
         const keys = sourceKey
-          .split(mapping.sourceMemberNamingConvention.splittingExpression)
+          .split(sourceMemberNamingConvention.splittingExpression)
           .filter(Boolean);
         if (keys.length === 1 || !sourceObj.hasOwnProperty(keys[0])) {
           continue;
@@ -141,12 +146,12 @@ export abstract class AutoMapperBase {
       }
 
       if (typeof sourceVal === 'object') {
-        if (this._isDate(sourceVal)) {
+        if (AutoMapperBase._isDate(sourceVal)) {
           destinationObj[key] = new Date(sourceVal) as TDestination[keyof TDestination];
           continue;
         }
 
-        if (this._isArray(sourceVal)) {
+        if (AutoMapperBase._isArray(sourceVal)) {
           if (isEmpty(sourceVal[0])) {
             destinationObj[key] = [] as any;
             continue;
@@ -168,7 +173,7 @@ export abstract class AutoMapperBase {
 
       if (
         (typeof sourceVal === 'object' || typeof sourceVal === 'function') &&
-        this._isClass(sourceVal)
+        AutoMapperBase._isClass(sourceVal)
       ) {
         const nestedMapping = this._getMappingForNestedKey<
           TSource[keyof TSource],
@@ -184,7 +189,11 @@ export abstract class AutoMapperBase {
     const propKeys: Array<keyof TDestination> = [];
     for (let prop of properties.values()) {
       propKeys.push(prop.destinationKey);
-      const propSourceKey = this._getSourcePropertyKey(mapping, prop.destinationKey);
+      const propSourceKey = AutoMapperBase._getSourcePropertyKey(
+        destinationMemberNamingConvention,
+        sourceMemberNamingConvention,
+        prop.destinationKey as string
+      );
       if (prop.transformation.transformationType === TransformationType.Ignore) {
         destinationObj[prop.destinationKey] = null as any;
         continue;
@@ -214,7 +223,7 @@ export abstract class AutoMapperBase {
           continue;
         }
 
-        if (!this._isClass(_source)) {
+        if (!AutoMapperBase._isClass(_source)) {
           console.warn(
             `${prop.destinationKey} is type ${prop.transformation.mapWith.destination.name} but ${_source} is a primitive. No mapping was executed`
           );
@@ -222,7 +231,7 @@ export abstract class AutoMapperBase {
           continue;
         }
 
-        if (this._isArray(_source)) {
+        if (AutoMapperBase._isArray(_source)) {
           destinationObj[prop.destinationKey] = isEmpty(_source[0])
             ? []
             : (this._mapArray(_source, _mapping as Mapping) as any);
@@ -252,7 +261,7 @@ export abstract class AutoMapperBase {
         continue;
       }
 
-      if (this._isResolver(prop.transformation.mapFrom)) {
+      if (AutoMapperBase._isResolver(prop.transformation.mapFrom)) {
         destinationObj[prop.destinationKey] = prop.transformation.mapFrom.resolve(
           sourceObj,
           destinationObj,
@@ -266,7 +275,7 @@ export abstract class AutoMapperBase {
       );
     }
 
-    this._assertMappingErrors(destinationObj, propKeys);
+    AutoMapperBase._assertMappingErrors(destinationObj, propKeys);
 
     if (!isArrayMap) {
       if (afterMap) {
@@ -307,7 +316,7 @@ export abstract class AutoMapperBase {
     return Promise.resolve().then(() => this._mapArray(sourceArray, mapping, option));
   }
 
-  private _assertMappingErrors<T extends { [key in keyof T]: any } = any>(
+  private static _assertMappingErrors<T extends { [key in keyof T]: any } = any>(
     obj: T,
     propKeys: Array<keyof T>
   ): void {
@@ -399,7 +408,7 @@ export abstract class AutoMapperBase {
           .toString()
           .split('return')
           .pop() as string)
-          .replace(/}|;/gm, '')
+          .replace(/[};]/gm, '')
           .trim()
           .split('.')
           .pop() as keyof T)
@@ -418,7 +427,7 @@ export abstract class AutoMapperBase {
   ): Mapping<TSource, TDestination> {
     const sourceName = source.prototype.constructor.name;
     const destinationName = destination.prototype.constructor.name;
-    const mapping = this._mappings[this._getMappingKey(sourceName, destinationName)];
+    const mapping = this._mappings[AutoMapperBase._getMappingKey(sourceName, destinationName)];
 
     if (!mapping) {
       throw new Error(
@@ -438,7 +447,7 @@ export abstract class AutoMapperBase {
       .find(key => this._mappings[key].destinationKey === destinationName);
 
     const sourceName = this._mappings[sourceKey as string].sourceKey;
-    const mapping = this._mappings[this._getMappingKey(sourceName, destinationName)];
+    const mapping = this._mappings[AutoMapperBase._getMappingKey(sourceName, destinationName)];
 
     if (!mapping) {
       throw new Error(
@@ -459,7 +468,7 @@ export abstract class AutoMapperBase {
     source: Constructable<TSource>,
     destination: Constructable<TDestination>
   ): string {
-    const key = this._getMappingKey(source.name, destination.name);
+    const key = AutoMapperBase._getMappingKey(source.name, destination.name);
     if (this._mappings[key]) {
       throw new Error(
         `Mapping for source ${source.name} and destination ${destination.name} is already existed`
@@ -469,11 +478,11 @@ export abstract class AutoMapperBase {
     return key;
   }
 
-  private _getMappingKey(sourceKey: string, destinationKey: string): string {
+  private static _getMappingKey(sourceKey: string, destinationKey: string): string {
     return sourceKey + '->' + destinationKey;
   }
 
-  private _isClass<TSource>(fn: Constructable<TSource>): boolean {
+  private static _isClass<TSource>(fn: Constructable<TSource>): boolean {
     return (
       fn.constructor &&
       (/^\s*function/.test(fn.constructor.toString()) ||
@@ -482,15 +491,15 @@ export abstract class AutoMapperBase {
     );
   }
 
-  private _isDate<TSource>(fn: Constructable<TSource>): boolean {
+  private static _isDate<TSource>(fn: Constructable<TSource>): boolean {
     return fn && Object.prototype.toString.call(fn) === '[object Date]' && !isNaN(fn as any);
   }
 
-  private _isArray<TSource>(fn: Constructable<TSource>): boolean {
+  private static _isArray<TSource>(fn: Constructable<TSource>): boolean {
     return Array.isArray(fn) && Object.prototype.toString.call(fn) === '[object Array]';
   }
 
-  private _isResolver<TSource>(fn: MapFromCallback<TSource>): fn is Resolver {
+  private static _isResolver<TSource>(fn: MapFromCallback<TSource>): fn is Resolver {
     return 'resolve' in fn;
   }
 
@@ -524,15 +533,14 @@ export abstract class AutoMapperBase {
     return mapping;
   }
 
-  private _getSourcePropertyKey<TSource, TDestination>(
-    mapping: Mapping<TSource, TDestination>,
-    key: keyof TDestination
+  private static _getSourcePropertyKey(
+    destinationMemberNamingConvention: NamingConvention,
+    sourceMemberNamingConvention: NamingConvention,
+    key: string
   ): string {
-    const keyParts = (key as string)
-      .split(mapping.destinationMemberNamingConvention.splittingExpression)
+    const keyParts = key
+      .split(destinationMemberNamingConvention.splittingExpression)
       .filter(Boolean);
-    return !keyParts.length
-      ? (key as string)
-      : mapping.sourceMemberNamingConvention.transformPropertyName(keyParts);
+    return !keyParts.length ? key : sourceMemberNamingConvention.transformPropertyName(keyParts);
   }
 }
