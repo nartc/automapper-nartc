@@ -1,7 +1,7 @@
 import { plainToClass } from 'class-transformer';
 import get from 'lodash.get';
 import isEmpty from 'lodash.isempty';
-import { CamelCaseNamingConvention } from './naming/camel-case-naming-convention';
+import { CamelCaseNamingConvention } from './naming';
 import {
   Constructable,
   ForMemberExpression,
@@ -121,8 +121,6 @@ export abstract class AutoMapperBase {
         continue;
       }
 
-      // customerName -> CustomerName
-      // CustomerName -> Customer Name
       if (!sourceObj.hasOwnProperty(sourceKey)) {
         const keys = sourceKey
           .split(sourceMemberNamingConvention.splittingExpression)
@@ -357,7 +355,7 @@ export abstract class AutoMapperBase {
       destinationMemberNamingConvention: new CamelCaseNamingConvention()
     };
 
-    this._mappings[key] = mapping;
+    this._mappings[key] = Object.seal(mapping);
     return mapping;
   }
 
@@ -394,7 +392,7 @@ export abstract class AutoMapperBase {
     //   }
     // }
 
-    this._mappings[key] = Object.freeze(reverseMapping);
+    this._mappings[key] = Object.seal(reverseMapping);
 
     return reverseMapping;
   }

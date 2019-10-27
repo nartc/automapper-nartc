@@ -7,9 +7,11 @@ import {
   ExposedType,
   Mapper,
   Mapping,
-  MappingProfileBase
+  MappingProfileBase,
+  MappingTransformation,
+  Resolver
 } from '../src';
-import { PascalCaseNamingConvention } from '../src/naming/pascal-case-naming-convention';
+import { PascalCaseNamingConvention } from '../src/naming';
 
 class User {
   @Expose()
@@ -124,6 +126,16 @@ class StringFormatter implements Converter<Date, string> {
   }
 }
 
+class CityToStateResolver implements Resolver<Employee, EmployeeVm, 'addressCity'> {
+  resolve(
+    source: Employee,
+    destination: EmployeeVm,
+    transformation: MappingTransformation<Employee, EmployeeVm>
+  ): EmployeeVm['addressCity'] {
+    return source.Address.State;
+  }
+}
+
 class AddressProfile extends MappingProfileBase {
   constructor() {
     super();
@@ -206,7 +218,8 @@ describe('automapper-nartc: mapping', () => {
   beforeEach(() => {
     Mapper.createMap(Employee, EmployeeVm)
       .setSourceNamingConvention(new PascalCaseNamingConvention())
-      .forMember('nameAndDepartment', opts => opts.mapFrom(s => s.Name + ' ' + s.Department));
+      .forMember('nameAndDepartment', opts => opts.mapFrom(s => s.Name + ' ' + s.Department))
+      .forMember('addressCity', opts => opts.mapFrom(new CityToStateResolver()));
     Mapper.createMap(Profile, ProfileVm)
       .forMember('avatarUrl', opts => opts.mapFrom(s => s.avatar))
       .reverseMap()
@@ -280,6 +293,12 @@ describe('automapper-nartc: mapping', () => {
     expect(vm).toBeInstanceOf(ProfileVm);
   });
 
+  it('mapAsync with createMap', async () => {
+    const vm = await Mapper.mapAsync(profile, ProfileVm);
+    expect(vm.avatarUrl).toEqual(profile.avatar);
+    expect(vm).toBeInstanceOf(ProfileVm);
+  });
+
   it('simple reverseMap', () => {
     const vm = Mapper.map(profile, ProfileVm);
     const _profile = Mapper.map(vm, Profile);
@@ -315,6 +334,24 @@ describe('automapper-nartc: mapping', () => {
     const userVms = Mapper.mapArray(users, UserVm);
     const addressVms = Mapper.mapArray(addresses, AddressVm);
     const profileVms = Mapper.mapArray(profiles, ProfileVm);
+
+    expect(userVms).toBeTruthy();
+    expect(userVms).toHaveLength(1);
+    userVms.forEach(vm => expect(vm).toBeInstanceOf(UserVm));
+
+    expect(addressVms).toBeTruthy();
+    expect(addressVms).toHaveLength(1);
+    addressVms.forEach(vm => expect(vm).toBeInstanceOf(AddressVm));
+
+    expect(profileVms).toBeTruthy();
+    expect(profileVms).toHaveLength(1);
+    profileVms.forEach(vm => expect(vm).toBeInstanceOf(ProfileVm));
+  });
+
+  it('mapArrayAsync', async () => {
+    const userVms = await Mapper.mapArrayAsync(users, UserVm);
+    const addressVms = await Mapper.mapArrayAsync(addresses, AddressVm);
+    const profileVms = await Mapper.mapArrayAsync(profiles, ProfileVm);
 
     expect(userVms).toBeTruthy();
     expect(userVms).toHaveLength(1);
@@ -380,5 +417,6 @@ describe('automapper-nartc: mapping', () => {
     expect(vm).toBeTruthy();
     expect(vm.nameAndDepartment).toEqual(employee.Name + ' ' + employee.Department);
     expect(vm.addressStreet).toEqual(employee.Address.Street);
+    expect(vm.addressCity).toEqual(employee.Address.State);
   });
 });

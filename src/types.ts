@@ -67,7 +67,7 @@ export interface Resolver<
     source: TSource,
     destination: TDestination,
     transformation: MappingTransformation<TSource, TDestination>
-  ): K;
+  ): TDestination[K];
 }
 
 /**
