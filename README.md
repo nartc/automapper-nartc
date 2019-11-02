@@ -1,3 +1,7 @@
+# Deprecated Warning: 
+#### This package is no longer maintained as I just refactored the whole mapping logic and moved to a new package: [@nartc/automapper](https://github.com/nartc/mapper). You can still use this `automapper-nartc` but it will no longer be maintained and updated. 
+
+
 # AutoMapper - Nartc
 
 This is a fork of `automapper-ts` by [Bert Loedeman](https://github.com/loedeman). My goal is to re-create this awesome library with a more strong-type approach while learning `TypeScript` myself.
